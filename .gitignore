@@ -1,0 +1,39 @@
+**/node_modules/
+gen/
+dist/
+.scp/
+.env
+*env*
+Makefile*.mta
+mta-*
+mta_archives/
+**/*.mtar
+resources/
+archive.zip
+.*_mta_build_tmp
+.vscode
+*.txt
+**/package-lock.json
+# auto generated wildcard
+gen/db/.env
+
+# auto generated wildcard
+db/.env
+
+# added by cds
+# .cdsrc-private.json
+# .esisrc.json
+# .eslintrc.json
+
+#### added by Rakesh ###
+srv/navigation*
+srv/navigation/**
+_i18n/
+app/timesheet*
+app/timesheet/**
+app/*.cds
+ams/
+logs/
+*logs/
+**/*.log
+ias-config.json

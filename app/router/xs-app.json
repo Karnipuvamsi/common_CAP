@@ -1,0 +1,17 @@
+{
+  "welcomeFile": "index.html",
+  "authenticationMethod": "route",
+  "routes": [
+    {
+      "source": "^/fin/api/odata/(v4|v2)/app/(.*)$",
+      "target": "/odata/$1/app/$2",
+      "destination": "btpshesh_srv-api",
+      "authenticationType": "none",
+      "csrfProtection": true
+    },
+  {
+      "source": "^/(.*)$",
+      "localDir": "ui5Lib"
+    }
+  ]
+}

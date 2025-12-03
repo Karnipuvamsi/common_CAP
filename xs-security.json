@@ -1,0 +1,66 @@
+{
+    "scopes": [
+        {
+            "name": "$XSAPPNAME.ADMIN",
+            "description": "Technical: Administrator"
+        },
+        {
+            "name": "$XSAPPNAME.SUPPORT",
+            "description": "Technical: Support"
+        },
+        {
+            "name": "$XSAPPNAME.USER",
+            "description": "Business: User"
+        }
+    ],
+    "role-templates": [
+        {
+            "name": "RT_APP_CSC_common_ADMIN",
+            "description": "common: Technical Administrator",
+            "scope-references": [
+                "$XSAPPNAME.ADMIN"
+            ]
+        },
+        {
+            "name": "RT_APP_CSC_common_SUPPORT",
+            "description": "common: Technical Support",
+            "scope-references": [
+                "$XSAPPNAME.SUPPORT"
+            ]
+        },
+        {
+            "name": "RT_APP_CSC_common_USER",
+            "description": "common: Business User",
+            "scope-references": [
+                "$XSAPPNAME.USER"
+            ]
+        }
+    ],
+    "role-collections": [
+        {
+            "name": "RC_APP_CSC_common_ADMIN",
+            "description": "common: Technical Administrator",
+            "role-template-references": [
+                "$XSAPPNAME.RT_APP_CSC_common_ADMIN",
+                "$XSAPPNAME.RT_APP_CSC_common_SUPPORT",
+                "$XSAPPNAME.RT_APP_CSC_common_USER"
+            ]
+        },
+        {
+            "name": "RC_APP_CSC_common_SUPPORT",
+            "description": "common: Technical Support",
+            "role-template-references": [
+                "$XSAPPNAME.RT_APP_CSC_common_SUPPORT",
+                "$XSAPPNAME.RT_APP_CSC_common_USER"
+            ]
+        },
+        {
+            "name": "RC_APP_CSC_common_USER",
+            "description": "common: Business User",
+            "role-template-references": [
+                "$XSAPPNAME.RT_APP_CSC_common_USER"
+            ]
+        }
+    ],
+    "attributes": []
+}

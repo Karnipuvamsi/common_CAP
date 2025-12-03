@@ -1,0 +1,118 @@
+{
+  "name": "csc_common",
+  "description": "CSC: Common API Framework",
+  "license": "CSC",
+  "private": true,
+  "dependencies": {
+    "@cap-js-community/odata-v2-adapter": "^1.15.7",
+    "@cap-js/hana": "^2.1.1",
+    "@sap-cloud-sdk/connectivity": "^4",
+    "@sap-cloud-sdk/http-client": "^4",
+    "@sap-cloud-sdk/resilience": "^4",
+    "@sap/cds": ">=9",
+    "esi-cap": "latest",
+    "npm": "^11.6.0"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": ">=2",
+    "@sap/cds-dk": "^9.3.0",
+    "@sap/eslint-plugin-cds": "^4.1.0",
+    "@sap/hdi-deploy": "^5.5.0",
+    "cross-env": "^10.0.0",
+    "eslint": "^9.35.0",
+    "eslint-plugin-no-secrets": "^2.2.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-xss": "^0.1.12"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:srv": "eslint srv/",
+    "cleanup:node": "rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules",
+    "cleanup:gen": "rm -rf gen && rm -rf db/src/gen && rm -rf srv/gen/",
+    "cleanup:package": "rm -rf package-lock.json && rm -rf */package-lock.json && rm -rf app/*/package-lock.json",
+    "cleanup:log": "rm -rf mta-*/",
+    "cleanup": "npm run cleanup:node && npm run cleanup:log",
+    "start": "NODE_ENV=production cds-serve",
+    "build:esi": "cp ../../.esisrc.json ./",
+    "build:cds": "npx -p @sap/cds-dk cds build --production",
+    "build:clean": "npm run cleanup:package && npm run build",
+    "build": "npm run cleanup && npm run cleanup:gen && npm run build:cds",
+    "env": "cp ./default-env.json ./*/default-env.json",
+    "debug": "cds serve",
+    "watch": "cross-env DEBUG=@sap/cds:*,sql,rest,odata cds watch --profile hybrid",
+    "undeploy": "cf undeploy common --delete-services",
+    "deploy": "cf deploy mta_archives/btpshesh_0.3.1.mtar --retries 1"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "cds": {
+    "requires": {
+      "auth": {
+        "[production]": {
+          "kind": "xsuaa"
+        },
+        "[hybrid]": {
+          "kind": "mocked",
+          "users": {
+            "sheshnath": {
+              "roles": [
+                "USER"
+              ],
+              "attr": {
+                "email": "freelancerji01@gmail.com"
+              }
+            }
+          }
+        },
+        "passport": {
+          "strategy": "JWT"
+        }
+      },
+      "Northwind": {
+        "kind": "odata-v2",
+        "model": "srv/external/Northwind",
+        "credentials": {
+          "url": "https://services.odata.org/V2/Northwind/Northwind.svc/"
+        }
+      },
+      "connectivity": true,
+      "destinations": true,
+      "db": {
+        "[production]": {
+          "kind": "hana-cloud"
+        }
+      }
+    },
+    "odata": {
+      "limit": {
+        "max": 5000,
+        "default": 1000
+      }
+    },
+    "log": {
+      "format": "json",
+      "levels": {
+        "auth": "debug",
+        "init": "debug",
+        "sqlite": "debug",
+        "hana": "debug",
+        "cds": "trace",
+        "model": "debug",
+        "odata": "debug",
+        "rest": "debug",
+        "outbound": "debug",
+        "esi": "warn",
+        "MasterDataService": "warn",
+        "TimeSheetDataService": "warn",
+        "UserDataService": "warn",
+        "ProjectDataService": "warn"
+      }
+    },
+    "sql": {
+      "native_hana_associations": false
+    }
+  }
+}

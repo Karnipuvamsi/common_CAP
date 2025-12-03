@@ -1,0 +1,86 @@
+{
+    "extends": [
+        "eslint:recommended",
+        "plugin:@sap/cds/recommended",
+        "plugin:security/recommended"
+    ],
+    "plugins": [
+        "security",
+        "no-secrets",
+        "xss"
+    ],
+    "env": {
+        "node": true,
+        "es2020": true,
+        "jest": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2020
+    },
+    "rules": {
+        "no-console": "warn",
+        "no-eval": "error",
+        "no-implied-eval": "error",
+        "no-new-func": "error",
+        "no-script-url": "error",
+        // Prevent timing attacks
+        "security/detect-possible-timing-attacks": "warn",
+        // SQL injection prevention
+        "security/detect-sql-injection": "error",
+        // NoSQL injection prevention
+        "security/detect-no-sql-injection": "error",
+        // Command injection prevention
+        "security/detect-child-process": "warn",
+        "security/detect-eval-with-expression": "error",
+        // Path traversal prevention
+        "security/detect-non-literal-fs-filename": "warn",
+        "security/detect-non-literal-require": "warn",
+        // Sensitive data exposure
+        "no-secrets/no-secrets": [
+            "error",
+            {
+                "tolerance": 4.2
+            }
+        ],
+        // Regular expression DoS prevention
+        "security/detect-unsafe-regex": "error",
+        // Buffer security
+        "security/detect-buffer-noassert": "error",
+        "security/detect-new-buffer": "error",
+        // Object injection prevention
+        "security/detect-object-injection": "warn",
+        // Cryptography issues
+        "security/detect-pseudoRandomBytes": "error",
+        // XSS prevention
+        "xss/no-mixed-html": "error",
+        "xss/no-location-href-assign": "error",
+        // General security practices
+        "no-unused-vars": [
+            "error",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
+        "strict": [
+            "error",
+            "global"
+        ],
+        "no-process-exit": "error",
+        "no-process-env": "warn",
+        "semi": [
+            "error",
+            "always"
+        ],
+        "quotes": [
+            "error",
+            "single"
+        ]
+    },
+    "ignorePatterns": [
+        "gen/**/*",
+        "node_modules/",
+        "dist/",
+        "mta_archives/",
+        "resources/"
+    ]
+}

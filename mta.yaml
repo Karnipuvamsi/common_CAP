@@ -1,0 +1,138 @@
+_schema-version: 3.3.0
+ID: btpshesh
+description: common - CF MT Application
+version: 0.3.2
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install --production
+        - npm run build:clean
+  after-all:
+    - builder: custom
+      commands:
+        - npm run cleanup
+        # - npm run deploy
+
+modules:
+  - name: btpshesh_db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      ignore:
+        - "*node_modules*"
+    requires:
+      - name: btpshesh_hana-hdi-service
+
+  - name: btpshesh_srv
+    type: nodejs
+    description: Service Module for common
+    path: gen/srv
+    parameters:
+      buildpack: nodejs_buildpack
+      routes:
+        - route: "${default-url}"
+        - route: "${default-host}.cert.${default-domain}"
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - npm run "build:esi"
+      ignore:
+        - "*node_modules*"
+    provides:
+      - name: btpshesh_srv-api
+        properties:
+          srv-url: ${default-url}
+          srv-cert-url: '${protocol}://${default-host}.cert.${default-domain}'
+    requires:
+      - name: csc_connectivity-service
+        parameters:
+          service-key: csc_connectivity-service-key
+      - name: csc_destination-service
+        parameters:
+          service-key: csc_destination-service-key
+      - name: btpshesh_hana-hdi-service
+      - name: btpshesh_uaa-service
+        parameters:
+          service-key: btpshesh_uaa-service-key
+
+  - name: shesh
+    type: approuter.nodejs
+    description: Approuter for common
+    path: app/router
+    parameters:
+      keep-managed-routes: true
+      disk-quota: 256M
+      memory: 256M
+    build-parameters:
+      builder: npm
+      ignore:
+        - "*node_modules*"
+    provides:
+      - name: shesh-api
+        properties:
+          app-protocol: ${protocol}
+          app-uri: ${default-uri}
+    requires:
+      - name: btpshesh_srv-api
+        group: destinations
+        properties:
+          name: btpshesh_srv-api
+          url: ~{srv-url}
+          forwardAuthToken: true
+      - name: btpshesh_uaa-service
+        parameters:
+          service-key: btpshesh_uaa-service-key
+      - name: csc_destination-service
+        parameters:
+          service-key: csc_destination-service-key
+
+resources:
+  - name: btpshesh_hana-hdi-service
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+
+  - name: csc_destination-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+
+  - name: csc_connectivity-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
+
+  - name: btpshesh_uaa-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-name: btpshesh_uaa-service
+      service-plan: application
+      service-keys:
+        - name: btpshesh_uaa-service-key
+      config:
+        xsappname: btpshesh
+        description: Security Profile
+        tenant-mode: dedicated
+        oauth2-configuration:
+          redirect-uris:
+            - ~{shesh-api/app-protocol}://~{shesh-api/app-uri}/login/callback
+            - ~{shesh-api/app-protocol}://*.applicationstudio.cloud.sap/**
+            - https://~{shesh-api/app-uri}/**
+            - https://*~{shesh-api/app-uri}/**
+          
+           
+            
+            
+      path: ./xs-security.json
+    requires:
+      - name: shesh-api
