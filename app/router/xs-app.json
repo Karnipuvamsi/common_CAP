@@ -1,3 +1,4 @@
+
 {
   "welcomeFile": "index.html",
   "authenticationMethod": "route",
@@ -9,7 +10,15 @@
       "authenticationType": "none",
       "csrfProtection": true
     },
-  {
+    {
+      "source": "^/resources/ui5Lib/csc/ui5lib/delegates/(.*)$",
+      "target": "/resources/ui5Lib/csc/ui5lib/delegates/$1",
+      "destination": "btpshesh_srv-api",
+      "authenticationType": "none",
+      "csrfProtection": false
+    },
+
+    {
       "source": "^/(.*)$",
       "localDir": "ui5Lib"
     }
