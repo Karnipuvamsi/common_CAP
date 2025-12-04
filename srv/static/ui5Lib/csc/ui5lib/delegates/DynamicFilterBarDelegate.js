@@ -8,7 +8,7 @@ sap.ui.define([
     "sap/ui/mdc/FilterBarDelegate",
     "sap/ui/mdc/FilterField",
     "sap/ui/core/Element",
-    "csc/ui5lib/delegates/DynamicPropertyInfo",
+    "ui5Lib/csc/ui5lib/delegates/DynamicPropertyInfo",
 ], function (
     FilterBarDelegate,
     FilterField,

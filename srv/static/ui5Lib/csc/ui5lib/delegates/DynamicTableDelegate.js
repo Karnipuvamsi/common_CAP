@@ -5,7 +5,7 @@ sap.ui.define([
     "sap/ui/mdc/enums/TableType",
     "sap/m/plugins/PluginBase",
     "sap/m/plugins/CopyProvider",
-    "csc/ui5lib/delegates/DynamicPropertyInfo"
+    "ui5Lib/csc/ui5lib/delegates/DynamicPropertyInfo"
 ], function (
     Element,
     TableDelegate,
@@ -109,6 +109,10 @@ sap.ui.define([
         if (oTable.getSelectionMode() !== "SingleMaster") {
             oTable.setCopyProvider(CopyProvider);
         }
+
+
+        
+
         if (oPayload?.tableModeType === "ValueHelp") {
             oTable.destroyVariant(); // Destroy variant for ValueHelp mode
             oTable.setEnableExport(false); // Disable export functionality

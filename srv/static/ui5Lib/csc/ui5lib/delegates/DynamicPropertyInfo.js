@@ -5,8 +5,8 @@
  */
 
 sap.ui.define([
-    "csc/ui5lib/delegates/helper/PayloadParser",
-    "csc/ui5lib/delegates/helper/DataTypeMapper"
+    "ui5Lib/csc/ui5lib/delegates/helper/PayloadParser",
+    "ui5Lib/csc/ui5lib/delegates/helper/DataTypeMapper"
 ], function (
     PayloadParser,
     DataTypeMapper
