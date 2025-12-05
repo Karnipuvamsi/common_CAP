@@ -1,5 +1,130 @@
+# Complete UI5 Custom Library - Provider & Consumer Setup
+
+## 📦 PROVIDER (Library) - Complete Structure
+
+### Folder Structure
+```
+csc-ui5lib-delegates/
+├── src/
+│   └── csc/
+│       └── ui5Lib/
+│           └── Delegates/
+│               ├── library.js
+│               ├── .library
+│               ├── Example.js
+│               ├── manifest.json
+│               └── themes/
+│                   └── base/
+│                       └── library.css
+├── test/
+│   └── csc/
+│       └── ui5Lib/
+│           └── Delegates/
+│               └── qunit/
+│                   └── testsuite.qunit.html
+├── ui5.yaml
+├── mta.yaml
+├── package.json
+└── README.md
+```
+
+---
+
+### 1️⃣ `mta.yaml`
+
+```yaml
+_schema-version: "3.3"
+ID: csc-ui5lib-delegates
+version: 1.0.0
+description: "Custom UI5 Library - Delegates"
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install
+
+modules:
+  - name: csc-ui5lib-delegates-html5
+    type: html5
+    path: .
+    build-parameters:
+      builder: custom
+      commands:
+        - ui5 build --all --include-task=generateManifestBundle generateVersionInfo
+      supported-platforms: []
+      build-result: dist
+    requires:
+      - name: csc-ui5lib-html5-repo
+
+resources:
+  - name: csc-ui5lib-html5-repo
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo-host
+      service-plan: app-host
+```
+
+---
+
+### 2️⃣ `ui5.yaml`
+
+```yaml
+specVersion: "3.0"
+type: library
+metadata:
+  name: csc.ui5Lib.Delegates
+  copyright: |-
+   CSC - Custom UI5 Library
+   Copyright (c) 2024
+framework:
+  name: SAPUI5
+  version: "1.120.0"
+  libraries:
+    - name: sap.ui.core
+    - name: themelib_sap_horizon
+```
+
+---
+
+### 3️⃣ `package.json`
+
+```json
+{
+  "name": "csc-ui5lib-delegates",
+  "version": "1.0.0",
+  "description": "Custom UI5 Library - Delegates",
+  "author": "Karnipu Vamsi",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "build": "ui5 build --all",
+    "start": "ui5 serve --port 8080"
+  },
+  "devDependencies": {
+    "@ui5/cli": "^3.9.0",
+    "@sap/ux-ui5-tooling": "^1.13.0"
+  },
+  "ui5": {
+    "dependencies": [
+      "@sapui5/distribution-metadata"
+    ]
+  }
+}
+```
+
+---
+
+### 4️⃣ `src/csc/ui5Lib/Delegates/library.js`
+
+```javascript
 /*!
- * ${copyright}
+ * CSC - Custom UI5 Library
+ * Copyright (c) 2024
  */
 
 /**
@@ -11,11 +136,10 @@ sap.ui.define([
 	"use strict";
 
 	// delegate further initialization of this library to the Core
-	// Hint: sap.ui.getCore() must still be used to support preload with sync bootstrap!
 	sap.ui.getCore().initLibrary({
 		name: "csc.ui5Lib.Delegates",
 		version: "${version}",
-		dependencies: [ // keep in sync with the ui5.yaml and .library files
+		dependencies: [
 			"sap.ui.core"
 		],
 		types: [
@@ -26,11 +150,11 @@ sap.ui.define([
 			"csc.ui5Lib.Delegates.Example"
 		],
 		elements: [],
-		noLibraryCSS: false // if no CSS is provided, you can disable the library.css load here
+		noLibraryCSS: false
 	});
 
 	/**
-	 * Some description about <code>Delegates</code>
+	 * Custom UI5 Library for Delegates
 	 *
 	 * @namespace
 	 * @name csc.ui5Lib.Delegates
@@ -65,3 +189,744 @@ sap.ui.define([
 	return thisLib;
 
 });
+```
+
+---
+
+### 5️⃣ `src/csc/ui5Lib/Delegates/.library`
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<library xmlns="http://www.sap.com/sap.ui.library.xsd">
+  <name>csc.ui5Lib.Delegates</name>
+  <vendor>CSC</vendor>
+  <copyright>CSC - Copyright (c) 2024</copyright>
+  <version>1.0.0</version>
+  <documentation>Custom UI5 Library - Delegates</documentation>
+  
+  <dependencies>
+    <dependency>
+      <libraryName>sap.ui.core</libraryName>
+    </dependency>
+  </dependencies>
+  
+  <appData>
+    <packaging xmlns="http://www.sap.com/ui5/buildext/packaging" version="2.0">
+      <module-infos>
+        <raw-module name="csc/ui5Lib/Delegates/library-preload.js"/>
+      </module-infos>
+    </packaging>
+  </appData>
+</library>
+```
+
+---
+
+### 6️⃣ `src/csc/ui5Lib/Delegates/Example.js` (Sample Control)
+
+```javascript
+/*!
+ * CSC - Custom UI5 Library
+ */
+
+sap.ui.define([
+	"sap/ui/core/Control",
+	"./library"
+], function(Control, library) {
+	"use strict";
+
+	var ExampleColor = library.ExampleColor;
+
+	/**
+	 * Constructor for a new Example control.
+	 *
+	 * @param {string} [sId] ID for the new control
+	 * @param {object} [mSettings] Initial settings for the new control
+	 *
+	 * @class
+	 * Example custom control
+	 * @extends sap.ui.core.Control
+	 *
+	 * @author Karnipu Vamsi
+	 * @version ${version}
+	 *
+	 * @constructor
+	 * @public
+	 * @alias csc.ui5Lib.Delegates.Example
+	 */
+	var Example = Control.extend("csc.ui5Lib.Delegates.Example", {
+		metadata: {
+			library: "csc.ui5Lib.Delegates",
+			properties: {
+				/**
+				 * The text to display
+				 */
+				text: {type: "string", defaultValue: ""},
+				
+				/**
+				 * The color of the text
+				 */
+				color: {type: "csc.ui5Lib.Delegates.ExampleColor", defaultValue: ExampleColor.Default}
+			},
+			aggregations: {},
+			events: {
+				/**
+				 * Fired when the control is pressed
+				 */
+				press: {}
+			}
+		},
+
+		renderer: {
+			apiVersion: 2,
+			render: function(oRm, oControl) {
+				oRm.openStart("div", oControl);
+				oRm.class("cscExample");
+				oRm.class("cscExample" + oControl.getColor());
+				oRm.openEnd();
+				oRm.text(oControl.getText());
+				oRm.close("div");
+			}
+		},
+
+		onclick: function() {
+			this.firePress();
+		}
+	});
+
+	return Example;
+});
+```
+
+---
+
+### 7️⃣ `src/csc/ui5Lib/Delegates/themes/base/library.css`
+
+```css
+/* Custom Library CSS */
+.cscExample {
+	display: inline-block;
+	padding: 0.5rem 1rem;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	cursor: pointer;
+	font-family: "72", Arial, sans-serif;
+	font-size: 0.875rem;
+}
+
+.cscExampleDefault {
+	background-color: #0a6ed1;
+	color: white;
+}
+
+.cscExampleHighlight {
+	background-color: #ffc107;
+	color: black;
+}
+
+.cscExample:hover {
+	opacity: 0.8;
+}
+```
+
+---
+
+### 8️⃣ `src/csc/ui5Lib/Delegates/manifest.json`
+
+```json
+{
+	"_version": "1.0.0",
+	"sap.app": {
+		"id": "csc.ui5Lib.Delegates",
+		"type": "library",
+		"title": "Custom UI5 Library - Delegates",
+		"description": "Reusable UI5 library with custom controls",
+		"applicationVersion": {
+			"version": "1.0.0"
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"dependencies": {
+			"minUI5Version": "1.120.0",
+			"libs": {
+				"sap.ui.core": {}
+			}
+		}
+	}
+}
+```
+
+---
+
+### 📤 **Deploy Library**
+
+```bash
+# Install dependencies
+npm install
+
+# Build the library
+npm run build
+
+# Build MTA
+mbt build
+
+# Deploy to Cloud Foundry
+cf deploy mta_archives/csc-ui5lib-delegates_1.0.0.mtar
+
+# Verify deployment
+cf html5-list -d -u
+```
+
+---
+
+## 🛒 CONSUMER (Application) - Complete Structure
+
+### Folder Structure
+```
+consumer-app/
+├── webapp/
+│   ├── view/
+│   │   ├── App.view.xml
+│   │   └── MainView.view.xml
+│   ├── controller/
+│   │   ├── App.controller.js
+│   │   └── MainView.controller.js
+│   ├── css/
+│   │   └── style.css
+│   ├── i18n/
+│   │   └── i18n.properties
+│   ├── manifest.json
+│   └── index.html
+├── xs-app.json
+├── xs-security.json
+├── ui5.yaml
+├── mta.yaml
+├── package.json
+└── README.md
+```
+
+---
+
+### 1️⃣ `mta.yaml`
+
+```yaml
+_schema-version: "3.3"
+ID: consumer-app
+version: 1.0.0
+description: "Consumer app using custom UI5 library"
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install
+
+modules:
+  # Approuter Module
+  - name: consumer-app-approuter
+    type: approuter.nodejs
+    path: approuter
+    parameters:
+      disk-quota: 256M
+      memory: 256M
+    requires:
+      - name: consumer-app-uaa
+      - name: consumer-app-html5-repo-runtime
+      - name: consumer-app-destination
+    properties:
+      TENANT_HOST_PATTERN: "^(.*)-consumer-app-approuter.cfapps.eu10.hana.ondemand.com"
+
+  # HTML5 Module
+  - name: consumer-app-html5
+    type: html5
+    path: .
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - npm run build
+      supported-platforms: []
+      build-result: dist
+    requires:
+      - name: consumer-app-html5-repo-host
+
+resources:
+  # HTML5 Apps Repository (Host)
+  - name: consumer-app-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo-host
+      service-plan: app-host
+
+  # HTML5 Apps Repository (Runtime)
+  - name: consumer-app-html5-repo-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo-rt
+      service-plan: app-runtime
+
+  # XSUAA
+  - name: consumer-app-uaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+
+  # Destination Service
+  - name: consumer-app-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+```
+
+---
+
+### 2️⃣ `ui5.yaml`
+
+```yaml
+specVersion: "3.0"
+metadata:
+  name: consumer.app
+type: application
+framework:
+  name: SAPUI5
+  version: "1.120.0"
+  libraries:
+    - name: sap.m
+    - name: sap.ui.core
+    - name: themelib_sap_horizon
+```
+
+---
+
+### 3️⃣ `package.json`
+
+```json
+{
+  "name": "consumer-app",
+  "version": "1.0.0",
+  "description": "Consumer app using custom UI5 library",
+  "scripts": {
+    "start": "ui5 serve --port 8080",
+    "build": "ui5 build --all --clean-dest"
+  },
+  "devDependencies": {
+    "@ui5/cli": "^3.9.0",
+    "@sap/ux-ui5-tooling": "^1.13.0"
+  },
+  "ui5": {
+    "dependencies": [
+      "@sapui5/distribution-metadata"
+    ]
+  }
+}
+```
+
+---
+
+### 4️⃣ `xs-app.json`
+
+```json
+{
+  "welcomeFile": "/index.html",
+  "authenticationMethod": "route",
+  "routes": [
+    {
+      "source": "^/resources/csc/ui5Lib/Delegates/(.*)$",
+      "target": "/csc-ui5lib-delegates-html5/resources/csc/ui5Lib/Delegates/$1",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "none"
+    },
+    {
+      "source": "^/(.*)$",
+      "target": "$1",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
+    }
+  ]
+}
+```
+
+---
+
+### 5️⃣ `xs-security.json`
+
+```json
+{
+  "xsappname": "consumer-app",
+  "tenant-mode": "dedicated",
+  "description": "Security profile for consumer app",
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.Display",
+      "description": "Display content"
+    }
+  ],
+  "role-templates": [
+    {
+      "name": "Viewer",
+      "description": "View application data",
+      "scope-references": [
+        "$XSAPPNAME.Display"
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### 6️⃣ `webapp/manifest.json`
+
+```json
+{
+  "_version": "1.59.0",
+  "sap.app": {
+    "id": "consumer.app",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "1.0.0"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "dataSources": {}
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.120.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "csc.ui5Lib.Delegates": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "consumer.app.i18n.i18n"
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "async": true,
+        "viewPath": "consumer.app.view",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "clearControlAggregation": false
+      },
+      "routes": [
+        {
+          "name": "RouteMainView",
+          "pattern": ":?query:",
+          "target": [
+            "TargetMainView"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetMainView": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "MainView",
+          "viewName": "MainView"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "consumer.app.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "App"
+    }
+  }
+}
+```
+
+---
+
+### 7️⃣ `webapp/view/App.view.xml`
+
+```xml
+<mvc:View
+	controllerName="consumer.app.controller.App"
+	xmlns:mvc="sap.ui.core.mvc"
+	displayBlock="true"
+	xmlns="sap.m">
+	<Shell id="shell">
+		<App id="app" />
+	</Shell>
+</mvc:View>
+```
+
+---
+
+### 8️⃣ `webapp/view/MainView.view.xml`
+
+```xml
+<mvc:View
+	controllerName="consumer.app.controller.MainView"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:csc="csc.ui5Lib.Delegates"
+	displayBlock="true">
+	<Page id="page" title="{i18n>title}">
+		<content>
+			<VBox alignItems="Center" justifyContent="Center" class="sapUiMediumMargin">
+				<Title text="Custom Library Demo" class="sapUiMediumMarginBottom"/>
+				
+				<csc:Example
+					id="exampleDefault"
+					text="Default Color Example"
+					color="Default"
+					press="onExamplePress"
+					class="sapUiSmallMarginBottom"/>
+				
+				<csc:Example
+					id="exampleHighlight"
+					text="Highlight Color Example"
+					color="Highlight"
+					press="onExamplePress"
+					class="sapUiSmallMarginBottom"/>
+				
+				<Text id="resultText" text="" class="sapUiMediumMarginTop"/>
+			</VBox>
+		</content>
+	</Page>
+</mvc:View>
+```
+
+---
+
+### 9️⃣ `webapp/controller/App.controller.js`
+
+```javascript
+sap.ui.define([
+	"sap/ui/core/mvc/Controller"
+], function (Controller) {
+	"use strict";
+
+	return Controller.extend("consumer.app.controller.App", {
+		onInit: function () {
+			// Initialize
+		}
+	});
+});
+```
+
+---
+
+### 🔟 `webapp/controller/MainView.controller.js`
+
+```javascript
+sap.ui.define([
+	"sap/ui/core/mvc/Controller",
+	"sap/m/MessageToast"
+], function (Controller, MessageToast) {
+	"use strict";
+
+	return Controller.extend("consumer.app.controller.MainView", {
+		onInit: function () {
+			// Initialize
+		},
+
+		onExamplePress: function(oEvent) {
+			var sText = oEvent.getSource().getText();
+			MessageToast.show("Pressed: " + sText);
+			this.byId("resultText").setText("Last pressed: " + sText);
+		}
+	});
+});
+```
+
+---
+
+### 1️⃣1️⃣ `webapp/index.html`
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Consumer App</title>
+	<script
+		id="sap-ui-bootstrap"
+		src="https://sapui5.hana.ondemand.com/1.120.0/resources/sap-ui-core.js"
+		data-sap-ui-theme="sap_horizon"
+		data-sap-ui-resourceroots='{
+			"consumer.app": "./"
+		}'
+		data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"
+		data-sap-ui-compatVersion="edge"
+		data-sap-ui-async="true"
+		data-sap-ui-frameOptions="trusted">
+	</script>
+</head>
+<body class="sapUiBody">
+	<div data-sap-ui-component 
+		data-name="consumer.app" 
+		data-id="container" 
+		data-settings='{"id" : "consumer.app"}'>
+	</div>
+</body>
+</html>
+```
+
+---
+
+### 1️⃣2️⃣ `webapp/i18n/i18n.properties`
+
+```properties
+# App Descriptor
+appTitle=Consumer App
+appDescription=App using custom UI5 library
+
+# Page Title
+title=Custom Library Demo
+```
+
+---
+
+### 1️⃣3️⃣ `webapp/css/style.css`
+
+```css
+/* Add custom styles here */
+.sapUiBody {
+	height: 100%;
+}
+```
+
+---
+
+### 1️⃣4️⃣ `approuter/package.json`
+
+Create an `approuter` folder with:
+
+```json
+{
+  "name": "consumer-app-approuter",
+  "version": "1.0.0",
+  "description": "Approuter for consumer app",
+  "scripts": {
+    "start": "node node_modules/@sap/approuter/approuter.js"
+  },
+  "dependencies": {
+    "@sap/approuter": "^14.0.0"
+  }
+}
+```
+
+---
+
+### 📤 **Deploy Consumer App**
+
+```bash
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Build MTA
+mbt build
+
+# Deploy
+cf deploy mta_archives/consumer-app_1.0.0.mtar
+
+# Get app URL
+cf html5-list -d -u
+```
+
+---
+
+## ✅ **Verification Steps**
+
+### 1. Check Library Deployment
+```bash
+cf html5-list -d -u
+# Should show: csc-ui5lib-delegates-html5
+```
+
+### 2. Check Consumer App Deployment
+```bash
+cf apps
+# Should show: consumer-app-approuter (running)
+
+cf html5-list -d -u
+# Should show: consumer-app-html5
+```
+
+### 3. Access the App
+```
+https://[tenant]-consumer-app-approuter.cfapps.eu10.hana.ondemand.com
+```
+
+### 4. Browser Console Check
+Open browser DevTools → Network tab → Filter by "library.js"
+
+You should see:
+```
+/resources/csc/ui5Lib/Delegates/library.js  (200 OK)
+```
+
+---
+
+## 🎯 **Summary**
+
+| Component | What it does |
+|-----------|--------------|
+| **Provider MTA** | Deploys custom library to HTML5 Apps Repo |
+| **Consumer xs-app.json** | Routes library requests to HTML5 repo |
+| **Consumer manifest.json** | Declares dependency on custom library |
+| **Consumer view** | Uses custom controls via `xmlns:csc` |
+
+**Everything is connected end-to-end! 🚀**
