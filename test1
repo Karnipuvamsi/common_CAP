@@ -43,3 +43,86 @@ resources:
       service: html5-apps-repo
       service-plan: app-host
       service-name: csc-ui5lib-html5-service
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_schema-version: "3.2"
+ID: csc-ui5lib-delegates
+description: "Custom SAPUI5 Library (csc-ui5lib-delegates) deployed to HTML5 Apps Repo"
+version: 0.0.1
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+
+modules:
+  # UI5 library build module (produces dist/)
+  - name: csc-ui5lib-delegates
+    type: html5
+    path: .
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf           # ui5 build --clean-dest --dest dist
+      build-result: dist
+    supported-platforms: []
+
+  # Content module that uploads the built zip to apps repo host
+  - name: csc-ui5lib-delegates-app-content
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: csc-ui5lib-delegates-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - name: csc-ui5lib-delegates
+          artifacts:
+            - csc-ui5lib-delegates.zip
+          target-path: resources/
+
+resources:
+  # HTML5 Apps Repo (Host) that stores the static content
+  - name: csc-ui5lib-delegates-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+      service-name: csc-ui5lib-delegates-html5-service
+
+  # Destination service (keeps a UI5 CDN destination and room for your backends)
+  - name: csc-ui5lib-delegates-destination-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      service-name: csc-ui5lib-delegates-destination-service
+      config:
+        HTML5Runtime_enabled: false
+        version: 1.0.0
+        init_data:
+          instance:
+            destinations:
+              - Name: ui5
+                Type: HTTP
+                ProxyType: Internet
+                URL: https://ui5.sap.com
+                Authentication: NoAuthentication
+            existing_destinations_policy: update
