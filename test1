@@ -31,32 +31,5 @@ resources:
   - name: csc-ui5lib-html5-repo
     type: org.cloudfoundry.managed-service
     parameters:
-      service: html5-apps-repo-host
-      service-plan: app-host
-
-
-Uploading 1 files...
-  /home/user/projects/csc.ui5Lib.Delegates/mta_archives/csc-ui5lib-delegates_1.0.0.mtar
- 0s  798 B / 798 B [===========================================================================================] 100.00% 0s
-OK
-Operation ID: bea8f316-d199-11f0-987a-eeee0a81b3ea
-Deploying in org "Genpact LLC_genpact-sap-ba-studio-56v4fjiz" and space "DEV"
-Detected MTA schema version: "3"
-No deployed MTA detected - this is initial deployment of MTA with ID "csc-ui5lib-delegates"
-Detected new MTA version: "1.0.0"
-Processing service "csc-ui5lib-html5-repo"...
-Creating service "csc-ui5lib-html5-repo" from MTA resource "csc-ui5lib-html5-repo"...
-Service operation failed: Controller operation failed: 404 Not Found: Error creating or updating service instance: Could not create service "csc-ui5lib-html5-repo" : Service plan app-host not found. 
-Proceeding with automatic retry... (3 of 3 attempts left)
-Creating service "csc-ui5lib-html5-repo" from MTA resource "csc-ui5lib-html5-repo"...
-Service operation failed: Controller operation failed: 404 Not Found: Error creating or updating service instance: Could not create service "csc-ui5lib-html5-repo" : Service plan app-host not found. 
-Proceeding with automatic retry... (2 of 3 attempts left)
-Creating service "csc-ui5lib-html5-repo" from MTA resource "csc-ui5lib-html5-repo"...
-Service operation failed: Controller operation failed: 404 Not Found: Error creating or updating service instance: Could not create service "csc-ui5lib-html5-repo" : Service plan app-host not found. 
-Proceeding with automatic retry... (1 of 3 attempts left)
-Creating service "csc-ui5lib-html5-repo" from MTA resource "csc-ui5lib-html5-repo"...
-Service operation failed: Controller operation failed: 404 Not Found: Error creating or updating service instance: Could not create service "csc-ui5lib-html5-repo" : Service plan app-host not found. 
-Process failed.
-Use "cf deploy -i bea8f316-d199-11f0-987a-eeee0a81b3ea -a abort" to abort the process.
-Use "cf deploy -i bea8f316-d199-11f0-987a-eeee0a81b3ea -a retry" to retry the process.
-Use "cf dmol -i bea8f316-d199-11f0-987a-eeee0a81b3ea" to download the logs of the process.
+      service: html5-apps-repo
+      service-plan: app-runtime
