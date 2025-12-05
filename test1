@@ -1,0 +1,35 @@
+
+_schema-version: "3.3"
+ID: csc-ui5lib-delegates
+version: 1.0.0
+description: "Custom UI5 Library - Delegates"
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install
+
+modules:
+  - name: csc-ui5lib-delegates-html5
+    type: html5
+    path: .
+    build-parameters:
+      builder: custom
+      commands:
+        - npx ui5 build --all --include-task=generateManifestBundle --include-task=generateVersionInfo
+      supported-platforms: []
+      build-result: dist
+    requires:
+      - name: csc-ui5lib-html5-repo
+
+resources:
+  - name: csc-ui5lib-html5-repo
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo-host
+      service-plan: app-host
