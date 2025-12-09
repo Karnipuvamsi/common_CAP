@@ -1,128 +1,80 @@
-_schema-version: "3.3"
-ID: csc-ui5lib-delegates
+
+_schema-version: 3.3.0
+ID: CICD_Capm
 version: 1.0.0
-description: "Custom UI5 Library - Delegates"
-
+description: "A simple CAP project."
 parameters:
-  deploy_mode: html5-repo
   enable-parallel-deployments: true
 
-modules:
-  # Content Deployer Module
-  - name: csc-ui5lib-delegates-deployer
-    type: com.sap.application.content
-    path: .
-    requires:
-      - name: csc-ui5lib-html5-repo
-        parameters:
-          content-target: true
-    build-parameters:
-      build-result: resources
-      requires:
-        - name: csc-ui5lib-delegates-html5
-          artifacts:
-            - csc-ui5lib-delegates-html5.zip
-          target-path: resources/
-
-  # HTML5 Module (The actual library)
-  - name: csc-ui5lib-delegates-html5
-    type: html5
-    path: .
-    build-parameters:
-      build-result: dist
-      builder: custom
+build-parameters:
+  before-all:
+    - builder: custom
       commands:
-        - npm install
-        - npm run build
-      supported-platforms: []
-
-resources:
-  - name: csc-ui5lib-html5-repo
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-host
-      service-name: csc-ui5lib-html5-service
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-_schema-version: "3.2"
-ID: csc-ui5lib-delegates
-description: "Custom SAPUI5 Library (csc-ui5lib-delegates) deployed to HTML5 Apps Repo"
-version: 0.0.1
-
-parameters:
-  deploy_mode: html5-repo
-  enable-parallel-deployments: true
+        - npm ci
+        - npx cds build --production
 
 modules:
-  # UI5 library build module (produces dist/)
-  - name: csc-ui5lib-delegates
-    type: html5
-    path: .
+  - name: CICD_Capm-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
     build-parameters:
-      builder: custom
-      commands:
-        - npm install
-        - npm run build:cf           # ui5 build --clean-dest --dest dist
-      build-result: dist
-    supported-platforms: []
-
-  # Content module that uploads the built zip to apps repo host
-  - name: csc-ui5lib-delegates-app-content
-    type: com.sap.application.content
-    path: .
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter/content module)
+        properties:
+          srv-url: ${default-url}
     requires:
-      - name: csc-ui5lib-delegates-repo-host
+      - name: CICD_Capm-db
+
+  - name: CICD_Capm-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: CICD_Capm-db
+
+  # --- Destination Content Module (creates subaccount-level destination) ---
+  - name: CICD_Capm-destination-content
+    type: com.sap.application.content
+    requires:
+      # Consume the srv-url from the CAP service
+      - name: srv-api
+      # Target the destination service resource to publish content at subaccount level
+      - name: CICD_Capm-destination
         parameters:
-          content-target: true
-    build-parameters:
-      build-result: resources
-      requires:
-        - name: csc-ui5lib-delegates
-          artifacts:
-            - csc-ui5lib-delegates.zip
-          target-path: resources/
+          content:
+            subaccount:
+              destinations:
+                - Name: CICD_Capm-srv
+                  Description: "Destination to CAP service (srv) for CICD_Capm"
+                  Type: HTTP
+                  ProxyType: Internet
+                  Authentication: NoAuthentication
+                  URL: ~{srv-api/srv-url}
+                  # Optional HTML5 attributes if you plan to use HTML5 apps
+                  HTML5.Forbidden: false
+                  HTML5.Timeout: 60000
+              # Change to 'update' if you want to overwrite an existing destination with same name
+              existing_destinations_policy: ignore
+    parameters:
+      content:
+        # Logical name shown in subaccount > Destination Content
+        instance_name: CICD_Capm-destination-content
 
 resources:
-  # HTML5 Apps Repo (Host) that stores the static content
-  - name: csc-ui5lib-delegates-repo-host
-    type: org.cloudfoundry.managed-service
+  - name: CICD_Capm-db
+    type: com.sap.xs.hdi-container
     parameters:
-      service: html5-apps-repo
-      service-plan: app-host
-      service-name: csc-ui5lib-delegates-html5-service
+      service: hana
+      service-plan: hdi-shared
 
-  # Destination service (keeps a UI5 CDN destination and room for your backends)
-  - name: csc-ui5lib-delegates-destination-service
+  # Destination service instance to host subaccount-level destinations
+  - name: CICD_Capm-destination
     type: org.cloudfoundry.managed-service
     parameters:
       service: destination
       service-plan: lite
-      service-name: csc-ui5lib-delegates-destination-service
-      config:
-        HTML5Runtime_enabled: false
-        version: 1.0.0
-        init_data:
-          instance:
-            destinations:
-              - Name: ui5
-                Type: HTTP
-                ProxyType: Internet
-                URL: https://ui5.sap.com
-                Authentication: NoAuthentication
-            existing_destinations_policy: update
