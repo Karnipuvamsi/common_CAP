@@ -1,4 +1,3 @@
-
 _schema-version: 3.3.0
 ID: CICD_Capm
 version: 1.0.0
@@ -14,6 +13,7 @@ build-parameters:
         - npx cds build --production
 
 modules:
+  # ------------------- CAP Service -------------------
   - name: CICD_Capm-srv
     type: nodejs
     path: gen/srv
@@ -23,12 +23,13 @@ modules:
     build-parameters:
       builder: npm-ci
     provides:
-      - name: srv-api # required by consumers of CAP services (e.g. approuter/content module)
+      - name: srv-api
         properties:
           srv-url: ${default-url}
     requires:
       - name: CICD_Capm-db
 
+  # ------------------- DB Deployer -------------------
   - name: CICD_Capm-db-deployer
     type: hdb
     path: gen/db
@@ -37,34 +38,32 @@ modules:
     requires:
       - name: CICD_Capm-db
 
-  # --- Destination Content Module (creates subaccount-level destination) ---
+
+  # ------------------- Destination Content -------------------
   - name: CICD_Capm-destination-content
     type: com.sap.application.content
     requires:
-      # Consume the srv-url from the CAP service
       - name: srv-api
-      # Target the destination service resource to publish content at subaccount level
       - name: CICD_Capm-destination
         parameters:
           content:
-            subaccount:
+            instance:
               destinations:
                 - Name: CICD_Capm-srv
-                  Description: "Destination to CAP service (srv) for CICD_Capm"
+                  Description: "Destination to CAP service (no auth)"
                   Type: HTTP
                   ProxyType: Internet
                   Authentication: NoAuthentication
                   URL: ~{srv-api/srv-url}
-                  # Optional HTML5 attributes if you plan to use HTML5 apps
-                  HTML5.Forbidden: false
-                  HTML5.Timeout: 60000
-              # Change to 'update' if you want to overwrite an existing destination with same name
-              existing_destinations_policy: ignore
+              existing_destinations_policy: update
     parameters:
       content:
-        # Logical name shown in subaccount > Destination Content
         instance_name: CICD_Capm-destination-content
+    build-parameters:
+      no-source: true
 
+
+# ------------------- Resources -------------------
 resources:
   - name: CICD_Capm-db
     type: com.sap.xs.hdi-container
@@ -72,7 +71,6 @@ resources:
       service: hana
       service-plan: hdi-shared
 
-  # Destination service instance to host subaccount-level destinations
   - name: CICD_Capm-destination
     type: org.cloudfoundry.managed-service
     parameters:
