@@ -16,10 +16,6 @@ modules:
     parameters:
       service-key:
         name: protosample-repo-host-key
-  - name: protosample-uaa
-    parameters:
-      service-key:
-        name: protosample-uaa-key
   parameters:
     content:
       instance:
@@ -27,11 +23,6 @@ modules:
         - Name: protosample_html_repo_host
           ServiceInstanceName: protosample-html5-service
           ServiceKeyName: protosample-repo-host-key
-          sap.cloud.service: protosample
-        - Authentication: OAuth2UserTokenExchange
-          Name: protosample_uaa
-          ServiceInstanceName: protosample-xsuaa-service
-          ServiceKeyName: protosample-uaa-key
           sap.cloud.service: protosample
         existing_destinations_policy: update
   build-parameters:
@@ -83,13 +74,6 @@ resources:
     service: destination
     service-name: protosample-destination-service
     service-plan: lite
-- name: protosample-uaa
-  type: org.cloudfoundry.managed-service
-  parameters:
-    path: ./xs-security.json
-    service: xsuaa
-    service-name: protosample-xsuaa-service
-    service-plan: application
 - name: protosample-repo-host
   type: org.cloudfoundry.managed-service
   parameters:
