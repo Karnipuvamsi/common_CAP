@@ -6,7 +6,7 @@ modules:
 - name: protosample-destination-content
   type: com.sap.application.content
   requires:
-  - name: btp-samples-split-mta-shared-dest-srv
+  - name: csc-sap-btp-ui5lib_dest-srv
     parameters:
       content-target: true
   - name: protosample-destination-service
@@ -61,10 +61,10 @@ modules:
     - npm run build:cf
     supported-platforms: []
 resources:
-- name: btp-samples-split-mta-shared-dest-srv
+- name: csc-sap-btp-ui5lib_dest-srv
   type: org.cloudfoundry.existing-service
   parameters:
-    service-name: btp-samples-split-mta-shared-dest-srv
+    service-name: csc-sap-btp-ui5lib_dest-srv
 - name: protosample-destination-service
   type: org.cloudfoundry.managed-service
   parameters:

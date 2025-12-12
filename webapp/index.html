@@ -25,7 +25,7 @@
     <script>
         let parts = window.location.pathname.split('/');
         let destinationGuid = (parts.length > 2) ?  parts[1].split(".")[0] + "." : "";
-        sap.ui.loader.config({paths:{"btp/samples/split/mta/lib": `/${destinationGuid}btpsamplessplitmta.btpsamplessplitmtalib`}});
+        sap.ui.loader.config({paths:{"sap/btp/ui5lib": `/${destinationGuid}cscui5lib.sapbtpui5lib`}});
     </script>
 </head>
 <body class="sapUiBody sapUiSizeCompact" id="content">

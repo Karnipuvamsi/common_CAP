@@ -62,7 +62,7 @@
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
-        "btp.samples.split.mta.lib": {}
+        "sap.btp.ui5lib":{}
       }
     },
     "contentDensities": {
