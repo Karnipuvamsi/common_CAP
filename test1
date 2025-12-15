@@ -1,8 +1,24 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
     "protosample/model/models"
-], (UIComponent, models) => {
+], function (UIComponent, models) {
     "use strict";
+
+    // ---- RUN-EVERYWHERE UI5 LIBRARY LOAD ----
+    if (location.host.indexOf("studio") > -1) {
+        // BAS / local preview
+        sap.ui.getCore().loadLibrary(
+            "sap.btp.ui5lib",
+            "/sapbtpui5lib/sap/btp/ui5lib"
+        );
+    } else {
+        // HTML5 App Repo / AppRouter / Launchpad
+        sap.ui.getCore().loadLibrary(
+            "sap.btp.ui5lib",
+            "/cscsapbtpui5lib.cscsapbtpui5lib/resources/sap/btp/ui5lib"
+        );
+    }
+    // ---------------------------------------
 
     return UIComponent.extend("protosample.Component", {
         metadata: {
@@ -12,7 +28,7 @@ sap.ui.define([
             ]
         },
 
-        init() {
+        init: function () {
             // call the base component's init function
             UIComponent.prototype.init.apply(this, arguments);
 
