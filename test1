@@ -1,32 +1,889 @@
-sap.ui.define([
-    "sap/ui/core/UIComponent"
-], function (UIComponent) {
-    "use strict";
-
-    return UIComponent.extend("protosample.Component", {
-
-        metadata: {
-            manifest: "json"
+2025-12-15 11:23:49 Device API logging initialized - DEVICE
+Log-dbg.js:497  2025-12-15 11:23:53.345699 sap/ushell/services/_AppState/AppStatePersistencyMethod is deprecated and will be removed in an upcoming release! -  
+u @ Log-dbg.js:497
+RenderManager-dbg.js:2667  Unrecognized feature: 'battery'.
+B @ RenderManager-dbg.js:2667
+Device-dbg.js:87 2025-12-15 11:23:54 [ui5appruntime.html] Device API logging initialized - DEVICE
+Log-dbg.js:497  2025-12-15 11:24:01.623000 App 'protosample' has errors and will possibly not run properly -  protosample
+u @ Log-dbg.js:497
+n.error @ Log-dbg.js:247
+(anonymous) @ Ui5ComponentLoader-dbg.js:715
+m._logAnyApplicationDependenciesMessages @ Ui5ComponentLoader-dbg.js:712
+m.createComponentData @ Ui5ComponentLoader-dbg.js:277
+m.createComponent @ Ui5ComponentLoader-dbg.js:249
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+Log-dbg.js:497  2025-12-15 11:24:01.623300 Error in application dependency 'sap.btp.ui5lib': No descriptor was found -  protosample
+u @ Log-dbg.js:497
+n.error @ Log-dbg.js:247
+(anonymous) @ Ui5ComponentLoader-dbg.js:715
+m._logAnyApplicationDependenciesMessages @ Ui5ComponentLoader-dbg.js:712
+m.createComponentData @ Ui5ComponentLoader-dbg.js:277
+m.createComponent @ Ui5ComponentLoader-dbg.js:249
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+Log-dbg.js:497  2025-12-15 11:24:02.309899 failed to load JavaScript resource: sap/btp/ui5lib/library-preload.js -  sap.ui.ModuleSystem
+u @ Log-dbg.js:497
+n.error @ Log-dbg.js:247
+error @ Log-dbg.js:683
+i @ ui5loader-dbg.js:1489
+script
+qe @ ui5loader-dbg.js:1463
+i @ ui5loader-dbg.js:1485
+script
+qe @ ui5loader-dbg.js:1463
+De @ ui5loader-dbg.js:1744
+Ye @ ui5loader-dbg.js:2438
+_preloadJSFormat @ Lib-dbg.js:663
+_preload @ Lib-dbg.js:570
+(anonymous) @ Lib-dbg.js:1644
+U._load @ Lib-dbg.js:1639
+ne @ Component-dbg.js:3422
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+Log-dbg.js:497  2025-12-15 11:24:02.311300 failed to load 'sap/btp/ui5lib/library-preload.js' (failed to load 'sap/btp/ui5lib/library-preload.js' from https://sapui5.hana.ondemand.com/1.143.2/resources/sap/btp/ui5lib/library-preload.js: script load error), falling back to library-preload.json -  
+u @ Log-dbg.js:497
+n.error @ Log-dbg.js:247
+(anonymous) @ Lib-dbg.js:684
+Promise.catch
+_preloadJSFormat @ Lib-dbg.js:666
+_preload @ Lib-dbg.js:570
+(anonymous) @ Lib-dbg.js:1644
+U._load @ Lib-dbg.js:1639
+ne @ Component-dbg.js:3422
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+fetch-dbg.js:209   GET https://602b9a51trial.launchpad.cfapps.us10.hana.ondemand.com/b6066f92-0012-4e5d-8d18-4184a16e72a1.protosample.protosample/~05aa7633-e61a-48d8-b38a-506d9f354873~/manifest.json?sap-language=EN 500 (Internal Server Error)
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+w.load @ Manifest-dbg.js:857
+ne @ Component-dbg.js:3144
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+ui5loader-dbg.js:1500   GET https://602b9a51trial.launchpad.cfapps.us10.hana.ondemand.com/b6066f92-0012-4e5d-8d18-4184a16e72a1.protosample.protosample/~05aa7633-e61a-48d8-b38a-506d9f354873~/Component-preload.js net::ERR_ABORTED 500 (Internal Server Error)
+qe @ ui5loader-dbg.js:1500
+De @ ui5loader-dbg.js:1744
+Ye @ ui5loader-dbg.js:2438
+D @ Component-dbg.js:3284
+(anonymous) @ Component-dbg.js:3524
+Promise.then
+ne @ Component-dbg.js:3515
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+/cp.portal/ui5appruntime.html?siteId=45c1a7d4-d4ae-4a3c-88f5-c82491823b40&subaccountId=17a9c32d-0574-4768-8fa3-d3d602608184&saasApprouter=true&sap-ui-app-id=protosample&scenario=LAUNCHPAD&sap-startup-params=&sap-shell=FLP&sap-touch=0&sap-ui-versionedLibCss=true&sap-plugins=RTAPluginAgent&sap-history-dir=NewEntry&sap-personalization=true&sap-theme=sap_horizon&sap-locale=en&sap-propagate-async-loading=true&sap-iframe-hint=UI5#proto-show?sap-ui-app-id-hint=saas_approuter_protosample:1  Refused to execute script from 'https://602b9a51trial.launchpad.cfapps.us10.hana.ondemand.com/b6066f92-0012-4e5d-8d18-4184a16e72a1.protosample.protosample/~05aa7633-e61a-48d8-b38a-506d9f354873~/Component-preload.js' because its MIME type ('') is not executable, and strict MIME type checking is enabled.
+fetch-dbg.js:209   GET https://sapui5.hana.ondemand.com/1.143.2/resources/sap/btp/ui5lib/library-preload.json 404 (Not Found)
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+_preloadJSONFormat @ Lib-dbg.js:711
+(anonymous) @ Lib-dbg.js:685
+Promise.catch
+_preloadJSFormat @ Lib-dbg.js:666
+_preload @ Lib-dbg.js:570
+(anonymous) @ Lib-dbg.js:1644
+U._load @ Lib-dbg.js:1639
+ne @ Component-dbg.js:3422
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+Log-dbg.js:497  2025-12-15 11:24:03.103899 failed to load 'https://sapui5.hana.ondemand.com/1.143.2/resources/sap/btp/ui5lib/library-preload.json': Not Found -  
+u @ Log-dbg.js:497
+n.error @ Log-dbg.js:247
+(anonymous) @ Lib-dbg.js:736
+Promise.catch
+_preloadJSONFormat @ Lib-dbg.js:735
+(anonymous) @ Lib-dbg.js:685
+Promise.catch
+_preloadJSFormat @ Lib-dbg.js:666
+_preload @ Lib-dbg.js:570
+(anonymous) @ Lib-dbg.js:1644
+U._load @ Lib-dbg.js:1639
+ne @ Component-dbg.js:3422
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+ui5loader-dbg.js:1500   GET https://602b9a51trial.launchpad.cfapps.us10.hana.ondemand.com/b6066f92-0012-4e5d-8d18-4184a16e72a1.protosample.protosample/~05aa7633-e61a-48d8-b38a-506d9f354873~/Component-preload.js net::ERR_ABORTED 500 (Internal Server Error)
+qe @ ui5loader-dbg.js:1500
+i @ ui5loader-dbg.js:1485
+script
+qe @ ui5loader-dbg.js:1463
+De @ ui5loader-dbg.js:1744
+Ye @ ui5loader-dbg.js:2438
+D @ Component-dbg.js:3284
+(anonymous) @ Component-dbg.js:3524
+Promise.then
+ne @ Component-dbg.js:3515
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+/cp.portal/ui5appruntime.html?siteId=45c1a7d4-d4ae-4a3c-88f5-c82491823b40&subaccountId=17a9c32d-0574-4768-8fa3-d3d602608184&saasApprouter=true&sap-ui-app-id=protosample&scenario=LAUNCHPAD&sap-startup-params=&sap-shell=FLP&sap-touch=0&sap-ui-versionedLibCss=true&sap-plugins=RTAPluginAgent&sap-history-dir=NewEntry&sap-personalization=true&sap-theme=sap_horizon&sap-locale=en&sap-propagate-async-loading=true&sap-iframe-hint=UI5#proto-show?sap-ui-app-id-hint=saas_approuter_protosample:1  Refused to execute script from 'https://602b9a51trial.launchpad.cfapps.us10.hana.ondemand.com/b6066f92-0012-4e5d-8d18-4184a16e72a1.protosample.protosample/~05aa7633-e61a-48d8-b38a-506d9f354873~/Component-preload.js' because its MIME type ('') is not executable, and strict MIME type checking is enabled.
+Log-dbg.js:497  2025-12-15 11:24:03.307099 failed to load JavaScript resource: protosample/Component-preload.js -  sap.ui.ModuleSystem
+u @ Log-dbg.js:497
+n.error @ Log-dbg.js:247
+error @ Log-dbg.js:683
+i @ ui5loader-dbg.js:1489
+script
+qe @ ui5loader-dbg.js:1463
+i @ ui5loader-dbg.js:1485
+script
+qe @ ui5loader-dbg.js:1463
+De @ ui5loader-dbg.js:1744
+Ye @ ui5loader-dbg.js:2438
+D @ Component-dbg.js:3284
+(anonymous) @ Component-dbg.js:3524
+Promise.then
+ne @ Component-dbg.js:3515
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+Log-dbg.js:497  2025-12-15 11:24:03.566199 failed to load JavaScript resource: sap/btp/ui5lib/library.js -  sap.ui.ModuleSystem
+u @ Log-dbg.js:497
+n.error @ Log-dbg.js:247
+error @ Log-dbg.js:683
+i @ ui5loader-dbg.js:1489
+script
+qe @ ui5loader-dbg.js:1463
+i @ ui5loader-dbg.js:1485
+script
+qe @ ui5loader-dbg.js:1463
+De @ ui5loader-dbg.js:1744
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+(anonymous) @ Lib-dbg.js:1449
+D @ Lib-dbg.js:1448
+Promise.then
+U._load @ Lib-dbg.js:1648
+(anonymous) @ Component-dbg.js:3440
+Promise.then
+ne @ Component-dbg.js:3433
+te @ Component-dbg.js:2738
+$.create @ Component-dbg.js:2496
+m._createUi5Component @ Ui5ComponentLoader-dbg.js:428
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:328
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+Log-dbg.js:497  2025-12-15 11:24:03.567000 The issue is most likely caused by application protosample. Please create a support incident and assign it to the support component of the respective application. - Failed to load UI5 component with properties: '{
+    "name": "protosample",
+    "url": "/b6066f92-0012-4e5d-8d18-4184a16e72a1.protosample.protosample/~05aa7633-e61a-48d8-b38a-506d9f354873~/",
+    "manifest": true,
+    "asyncHints": {
+        "libs": [
+            {
+                "name": "sap.m",
+                "lazy": false
+            },
+            {
+                "name": "sap.btp.ui5lib",
+                "lazy": false
+            },
+            {
+                "name": "sap.ui.fl",
+                "lazy": false
+            }
+        ],
+        "components": [],
+        "waitFor": []
+    },
+    "messages": [
+        {
+            "severity": "error",
+            "text": "App 'protosample' has errors and will possibly not run properly"
         },
-
-        init: function () {
-
-            /*
-             * Load shared UI5 library explicitly.
-             * This works in:
-             * - Launchpad (FLP)
-             * - HTML5 Applications
-             * - Central AppRouter
-             */
-
-            sap.ui.getCore().loadLibrary(
-                "sap.btp.ui5lib",
-                "/cscsapbtpui5lib.sapbtpui5lib/resources/sap/btp/ui5lib"
-            );
-
-            // standard UI5 init
-            UIComponent.prototype.init.apply(this, arguments);
-            this.getRouter().initialize();
+        {
+            "severity": "error",
+            "text": "Error in application dependency 'sap.btp.ui5lib': No descriptor was found"
         }
-    });
-});
+    ],
+    "version": "0.0.1",
+    "id": "application-proto-show-component",
+    "componentData": {
+        "startupParameters": {}
+    }
+}'. Error likely caused by:
+ModuleError: failed to load 'sap/btp/ui5lib/library.js' from https://sapui5.hana.ondemand.com/1.143.2/resources/sap/btp/ui5lib/library.js: script load error
+    at xe (https://sapui5.hana.ondemand.com/1.143.2/resources/sap/fiori/appruntime-min-0.js:15:7011)
+    at pe.failWith (https://sapui5.hana.ondemand.com/1.143.2/resources/sap/fiori/appruntime-min-0.js:15:4799)
+    at HTMLScriptElement.i (https://sapui5.hana.ondemand.com/1.143.2/resources/sap/fiori/appruntime-min-0.js:15:10858)
+Caused by: Error: script load error
+    at HTMLScriptElement.i (https://sapui5.hana.ondemand.com/1.143.2/resources/sap/fiori/appruntime-min-0.js:15:10900) protosample
+u @ Log-dbg.js:497
+n.error @ Log-dbg.js:247
+m.instantiateComponent @ Ui5ComponentLoader-dbg.js:360
+await in m.instantiateComponent
+m.createComponent @ Ui5ComponentLoader-dbg.js:256
+await in m.createComponent
+(anonymous) @ AppRuntime-dbg.js:927
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:902
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:895
+W.createApplication @ AppRuntime-dbg.js:842
+(anonymous) @ AppRuntime-dbg.js:438
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:428
+Promise.then
+(anonymous) @ AppRuntime-dbg.js:418
+Promise.then
+W.main @ AppRuntime-dbg.js:395
+(anonymous) @ AppRuntime-dbg.js:1141
+c @ ui5loader-dbg.js:2012
+Promise.then
+Me @ ui5loader-dbg.js:1926
+Te @ ui5loader-dbg.js:2050
+(anonymous) @ ui5loader-dbg.js:1383
+process @ ui5loader-dbg.js:1381
+Oe @ ui5loader-dbg.js:1828
+De @ ui5loader-dbg.js:1640
+Me @ ui5loader-dbg.js:1916
+r @ ui5loader-dbg.js:2187
+setTimeout
+Z @ Core-dbg.js:270
+Q._executeInitialization @ Core-dbg.js:1424
+Q.init @ Core-dbg.js:1304
+(anonymous) @ Core-dbg.js:733
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+(anonymous) @ Core-dbg.js:756
+(anonymous) @ Core-dbg.js:1134
+Promise.then
+Q._boot @ Core-dbg.js:1133
+(anonymous) @ Core-dbg.js:755
+r @ Core-dbg.js:375
+K.finishTask @ Core-dbg.js:369
+A.y.get.name @ Core-dbg.js:824
+XMLHttpRequest.send
+(anonymous) @ fetch-dbg.js:209
+n @ fetch-dbg.js:147
+t @ mixedFetch-dbg.js:54
+a.loadResource @ LoaderExtensions-dbg.js:310
+r.create @ Properties-dbg.js:277
+_load @ ResourceBundle-dbg.js:95
+get @ ResourceBundle-dbg.js:127
+y @ ResourceBundle-dbg.js:594
+m @ ResourceBundle-dbg.js:523
+b @ ResourceBundle-dbg.js:275
+b.create @ ResourceBundle-dbg.js:925
+_loadResourceBundle @ Lib-dbg.js:951
+loadResourceBundle @ Lib-dbg.js:900
+(anonymous) @ Lib-dbg.js:617
+ui5loader-dbg.js:1199  Uncaught (in promise) ModuleError: failed to load 'sap/btp/ui5lib/library.js' from https://sapui5.hana.ondemand.com/1.143.2/resources/sap/btp/ui5lib/library.js: script load error
