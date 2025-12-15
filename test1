@@ -1,18 +1,26 @@
-Run everywhere
+sap.ui.define([
+    "sap/ui/core/UIComponent",
+    "protosample/model/models"
+], (UIComponent, models) => {
+    "use strict";
 
-This is an ugly workaround but if you really want to test in BAS, HTML5 App Repo and cFLP do the following.
+    return UIComponent.extend("protosample.Component", {
+        metadata: {
+            manifest: "json",
+            interfaces: [
+                "sap.ui.core.IAsyncContentCreation"
+            ]
+        },
 
-Remove resource roots from index
+        init() {
+            // call the base component's init function
+            UIComponent.prototype.init.apply(this, arguments);
 
-Remove library dependency from manifest.json
+            // set the device model
+            this.setModel(models.createDeviceModel(), "device");
 
-Add the following to the component.js
-
-
-if(location.host.indexOf("studio")>-1){
-    //to make it work in app studio
-    sap.ui.getCore().loadLibrary("be.wl.ScannerAppLibrary", "/bewlScannerAppLibrary/be/wl/ScannerAppLibrary");
-}else{
-    //to make it work in central approuter and HTML5 App Repo
-    sap.ui.getCore().loadLibrary("be.wl.ScannerAppLibrary", "/bewlscannerapp.bewlScannerAppLibrary/resources/be/wl/ScannerAppLibrary");
-}
+            // enable routing
+            this.getRouter().initialize();
+        }
+    });
+});
