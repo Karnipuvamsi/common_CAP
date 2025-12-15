@@ -1,11 +1,26 @@
-{
-  "routes": [
-    {
-      "source": "^/sap/btp/ui5lib/(.*)$",
-      "target": "/$1",
-      "service": "html5-apps-repo-rt",
-      "destination": "csc-sap-btp-ui5lib_repo_host",
-      "csrfProtection": false
-    }
-  ]
-}
+sap.ui.define([
+    "sap/ui/core/UIComponent",
+    "protosample/model/models"
+], (UIComponent, models) => {
+    "use strict";
+
+    return UIComponent.extend("protosample.Component", {
+        metadata: {
+            manifest: "json",
+            interfaces: [
+                "sap.ui.core.IAsyncContentCreation"
+            ]
+        },
+
+        init() {
+            // call the base component's init function
+            UIComponent.prototype.init.apply(this, arguments);
+
+            // set the device model
+            this.setModel(models.createDeviceModel(), "device");
+
+            // enable routing
+            this.getRouter().initialize();
+        }
+    });
+});
