@@ -1,43 +1,31 @@
 sap.ui.define([
-    "sap/ui/core/UIComponent",
-    "sap/ui/Device"
-], function (UIComponent, Device) {
+    "sap/ui/core/UIComponent"
+], function (UIComponent) {
     "use strict";
 
     return UIComponent.extend("protosample.Component", {
+
         metadata: {
-            manifest: "json",
-            interfaces: [
-                "sap.ui.core.IAsyncContentCreation"
-            ]
+            manifest: "json"
         },
 
         init: function () {
 
-            // 1. Load shared UI5 library (FLP + HTML5 Repo safe)
-            if (location.host.indexOf("studio") > -1) {
-                // BAS / local
-                sap.ui.getCore().loadLibrary(
-                    "sap.btp.ui5lib",
-                    "/sapbtpui5lib/sap/btp/ui5lib"
-                );
-            } else {
-                // Launchpad + HTML5 App Repo
-                sap.ui.getCore().loadLibrary(
-                    "sap.btp.ui5lib",
-                    "/cscsapbtpui5lib.sapbtpui5lib/resources/sap/btp/ui5lib"
-                );
-            }
+            /*
+             * Load shared UI5 library explicitly.
+             * This works in:
+             * - Launchpad (FLP)
+             * - HTML5 Applications
+             * - Central AppRouter
+             */
 
-            // 2. Call base component init
+            sap.ui.getCore().loadLibrary(
+                "sap.btp.ui5lib",
+                "/cscsapbtpui5lib.sapbtpui5lib/resources/sap/btp/ui5lib"
+            );
+
+            // standard UI5 init
             UIComponent.prototype.init.apply(this, arguments);
-
-            // 3. Device model
-            var oDeviceModel = new sap.ui.model.json.JSONModel(Device);
-            oDeviceModel.setDefaultBindingMode("OneWay");
-            this.setModel(oDeviceModel, "device");
-
-            // 4. Router
             this.getRouter().initialize();
         }
     });
