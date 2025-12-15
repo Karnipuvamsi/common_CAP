@@ -13,6 +13,9 @@ sap.ui.define([
         },
 
         init() {
+            // Configure shared library path BEFORE parent init
+            this._configureSharedLibraryPath();
+            
             // call the base component's init function
             UIComponent.prototype.init.apply(this, arguments);
 
@@ -21,6 +24,36 @@ sap.ui.define([
 
             // enable routing
             this.getRouter().initialize();
+        },
+
+        _configureSharedLibraryPath() {
+            let destinationGuid = "";
+            
+            try {
+                const pathname = window.location.pathname;
+                
+                // Extract GUID from path pattern: /<guid>.namespace/path
+                const pathParts = pathname.split('/');
+                if (pathParts.length > 2 && pathParts[1]) {
+                    const firstSegment = pathParts[1];
+                    const dotIndex = firstSegment.indexOf('.');
+                    if (dotIndex > 0) {
+                        destinationGuid = firstSegment.substring(0, dotIndex) + ".";
+                    }
+                }
+            } catch (e) {
+                console.error("Error extracting destination GUID:", e);
+            }
+            
+            // Configure the UI5 loader to find the shared library
+            sap.ui.loader.config({
+                paths: {
+                    "shared/ui5/library": `/${destinationGuid}sharedui5lib`
+                }
+            });
+            
+            // Log for debugging (remove in production if desired)
+            console.log("Shared library path configured:", `/${destinationGuid}sharedui5lib`);
         }
     });
 });
