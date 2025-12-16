@@ -11,10 +11,38 @@ module.exports = service.impl(async function () {
     const oLog = esi.log('TimeSheetDataService');
     const oEvent = esi.service.events;
     const srvMasterData = await esi.connect.to("LocalService.MasterDataService");
-    const oModifiableRange = await helper.ts.getModifiableRange(srvMasterData);
+    // const oModifiableRange = await helper.ts.getModifiableRange(srvMasterData)
+    let oModifiableRange;          // cached value
+    let oModifiableRangePromise;  // in-flight promise
+
+    async function getModifiableRangeLazy(srvMasterData) {
+
+        // 1️⃣ Already computed → ZERO calls
+        if (oModifiableRange) {
+            return oModifiableRange;
+        }
+
+        // 2️⃣ First request is computing → wait, don’t recompute
+        if (oModifiableRangePromise) {
+            return oModifiableRangePromise;
+        }
+
+        // 3️⃣ First-ever request → compute ONCE
+        oModifiableRangePromise = helper.ts
+            .getModifiableRange(srvMasterData)
+            .then(r => {
+                oModifiableRange = r;        // cache forever
+                oModifiableRangePromise = null;
+                return r;
+            });
+
+        return oModifiableRangePromise;
+    }
+
     return await esi.impl.RemoteService(this, {
         PreOn: async function (oService) {
             oService.on('*', [TimeSheetClientSet, TimeSheetNonClientSet], async (oRequest, fNextHandler) => {
+                const oModifiableRange = await getModifiableRangeLazy(srvMasterData);
                 oLog.info(oEvent.PreOn, oRequest, "BEGIN");
                 const oHeaders = helper.getRequestHeaders(oRequest);
                 oLog.info(oEvent.PreOn, oRequest, "Request Headers", { "x-onbehalfof-user": oHeaders["x-onbehalfof-user"], "x-show-all-status": oHeaders["x-show-all-status"] });
@@ -185,7 +213,7 @@ module.exports = service.impl(async function () {
                 oLog.info(oEvent.PostOn, oRequest, "[get:" + sMode + "] - BEGIN", oRequest?.data);
                 if (sMode == 'D' && !oRequest?.data?.["ID"]) {
                     oRequest.data.ID = esi.query.DELETE.getKeyPropertyValueByName(oRequest, "ID");
-                } 
+                }
                 if (sMode != 'C' && !oRequest?.data?.["ID"]) {
                     oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] TimeSheet ID is mandatory");
                     oRequest.reject(400, 'TimeSheet ID is mandatory');
@@ -222,44 +250,19 @@ module.exports = service.impl(async function () {
                 const bEditableFlag = helper.ts.isAppEditable(dEntryDate, oModifiableRange);
 
                 if (!bEditableFlag) {
-                    return oRequest.reject(400, `Please select a date in the allowed time range, You can only create, edit or delete entries between ${oModifiableRange.Low.toISOString().slice(0, 10)} and ${oModifiableRange.High.toISOString().slice(0, 10)}.`);
-                }
+                    return oRequest.reject(400, `Please select a date in the allowed time range, You can only create, edit or delete entries between ${oModifiableRange.Low.toISOString().slice(0, 10)} and ${oModifiableRange.High.toISOString().slice(0, 10)}.`);HTTP/1.1 500 Internal Server Error
+X-Powered-By: Express
+X-Correlation-ID: 07cbb2e0-d39b-4788-a592-92f9b2377f9d
+OData-Version: 4.0
+Content-Type: application/json; charset=utf-8
+Content-Length: 93
+Date: Tue, 16 Dec 2025 07:01:19 GMT
+Connection: close
 
-                let oRequestData = {
-                    "PersonWorkAgreementExternalID": oRequest.PreOn.User.PersonWorkAgreementExternalID,
-                    "CompanyCode": oRequest.PreOn.User.CompanyCode,
-                    "TimeSheetIsReleasedOnSave": (sMode === 'D') ? true : false,
-                    "TimeSheetIsExecutedInTestRun": false,
-                    "TimeSheetOperation": sMode,
-                    "TimeSheetDate": oRequest.data.TimeSheetDate,
-                    "isEditable": bEditableFlag
-                };
-
-                if (sMode != 'C') {
-                    oRequestData["TimeSheetRecord"] = oID.TimeSheetRecord;
-                    if (sMode != 'D') {
-                        oRequestData["YY1_TimeSheetKey_TIM"] = oRequest.data.ID;
-                    }
-                }
-                if (sMode != 'D') {
-                    oRequestData = {
-                        ...oRequestData,
-                        ...{
-                            "TimeSheetDataFields": {
-                                "TimeSheetNote": oRequest.data.TimeSheetNote,
-                                "RecordedHours": (oRequest.data.TimeSheetUnit * 0.1).toFixed(2),
-                                "HoursUnitOfMeasure": "H",
-                                "RejectionReason": "",
-                                "TimeSheetWrkLocCode": ""
-
-
-and this si the function  getModifiableRange: async (oConfigVariableService) => {
-            const sMonthLimit = await oHelper.getConfigVariableValue("TS_ROLLING_MONTHS", oConfigVariableService);
-            const iMonthLimit = Number(sMonthLimit);
-            const oRange = {}
-            oRange.Low = oHelper.addMonthsToDate(iMonthLimit * -1);
-            oRange.High = oHelper.addMonthsToDate(iMonthLimit * 1);
-            return oRange;
-        },
-        
-
+{
+  "error": {
+    "message": "oModifiableRange is not defined",
+    "code": "",
+    "@Common.numericSeverity": 4
+  }
+} gettingthsi error
