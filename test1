@@ -23,7 +23,8 @@
           "annotations": [],
           "odataVersion": "4.0"
         }
-      },
+      }
+    },
     "crossNavigation": {
       "inbounds": {
         "simple-show": {
@@ -107,9 +108,7 @@
         {
           "name": "RouteView1",
           "pattern": ":?query:",
-          "target": [
-            "TargetView1"
-          ]
+          "target": ["TargetView1"]
         }
       ],
       "targets": {
@@ -127,4 +126,3 @@
     }
   }
 }
-
