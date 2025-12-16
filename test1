@@ -247,4 +247,496 @@ async function getModifiableRangeData(srvMasterData) {
                 const bEditableFlag = helper.ts.isAppEditable(dEntryDate, oModifiableRange);
 
                 if (!bEditableFlag) {
-                    return oRequest.reject(400, `Please select a date in the allowed time range, You can only create, edit or delete entries between ${oModifiableRange.Low.toISOString().slice(0, 10)} and ${oModifiableRange.High.toISOString().slice(0, 10)}.`);this ithe code in in myb one files and the top function is also a function in my application in another file now if you can see 
+                    return oRequest.reject(400, `Please select a date in the allowed time range, You can only create, edit or delete entries between ${oModifiableRange.Low.toISOString().slice(0, 10)} and ${oModifiableRange.High.toISOString().slice(0, 10)}.`);this ithe code in in myb one files and the top function is also a function in my application in another file now if you can see actually thus is the original snippet module.exports = service.impl(async function () {
+    const {
+        TimeSheetClientSet,
+        TimeSheetNonClientSet
+    } = this.entities;
+    const oLog = esi.log('TimeSheetDataService');
+    const oEvent = esi.service.events;
+    const srvMasterData = await esi.connect.to("LocalService.MasterDataService");
+    const oModifiableRange = await helper.ts.getModifiableRange(srvMasterData);
+    return await esi.impl.RemoteService(this, {
+        PreOn: async function (oService) {
+            oService.on('*', [TimeSheetClientSet, TimeSheetNonClientSet], async (oRequest, fNextHandler) => {
+                oLog.info(oEvent.PreOn, oRequest, "BEGIN");
+                const oHeaders = helper.getRequestHeaders(oRequest);
+                oLog.info(oEvent.PreOn, oRequest, "Request Headers", { "x-onbehalfof-user": oHeaders["x-onbehalfof-user"], "x-show-all-status": oHeaders["x-show-all-status"] });
+                oLog.warn(oEvent.PreOn, oRequest, "HD", "user", oRequest.user);
+                const sUserEmailAddress = helper.ts.getOnBehalfOfUserId(oRequest);
+                if (!oRequest.PreOn)
+                    oRequest.PreOn = {};
+                const oEntityColumns = esi.service.getEntityColumns(oService, oRequest);
+                oLog.info(oEvent.PreOn, oRequest, "Entity Columns", oEntityColumns);
+                oRequest.PreOn.entity = {
+                    columns: oEntityColumns
+                };
+                const srvUser = await esi.connect.to("LocalService.UserExtensionService");
+                const oUser = await srvUser.tx({
+                    user: {
+                        id: 'technicalUser',
+                        roles: ['ADMIN']
+                    }
+                }).send('getUser', {
+                    "params": {
+                        "EmailAddress": sUserEmailAddress
+                    }
+                });
+                oLog.info(oEvent.PreOn, oRequest, "Logged In User", oUser);
+                oLog.warn(oEvent.PreOn, oRequest, "HD", "user", oRequest.user);
+                if (!oUser || !Array.isArray(oUser) || oUser?.length != 1) {
+                    oLog.error(oEvent.PreOn, oRequest, "ERROR", `Issue in Logged in User(${sUserEmailAddress}) profile`);
+                    oRequest.reject(403, `Logged in user(${sUserEmailAddress}) does not exist!!!`);
+                }
+
+                if (oUser?.[0]?.ServiceCostLevel > 20) {
+                    oLog.error(oEvent.PreOn, oRequest, "ERROR", `Issue in Logged in User(${sUserEmailAddress}) profile. Service Cost Level will not be allowed greater than 20`);
+                    oRequest.reject(`Logged in user(${sUserEmailAddress}) Service Cost Level is incorrect, please contact your local HR department.`);
+                }
+
+                Object.assign(oRequest.PreOn, { User: utils.array.toDisArray(oUser) });
+                oLog.info(oEvent.PreOn, oRequest, "END", "User", oRequest.PreOn.User);
+                return await fNextHandler();
+            });
+
+            oService.on('READ', [TimeSheetClientSet, TimeSheetNonClientSet], async (oRequest, fNextHandler) => {
+                oLog.info(oEvent.PreOn, oRequest, "BEGIN", oRequest.target.name, oRequest.query.SELECT.columns);
+                const oHeaders = oRequest?.http?.req?.headers || oRequest.headers || {};
+                const bShowAllStatus = oHeaders["x-show-all-status"] === "true" || false;
+                oLog.info(oEvent.PreOn, oRequest, "x-show-all-status", bShowAllStatus);
+                let oColumns = [];
+                if (!oRequest.PreOn)
+                    oRequest.PreOn = {};
+                Object.assign(oRequest.PreOn, {
+                    SELECT: {
+                        columns: [],
+                        where: []
+                    },
+                    IDEmpty: false,
+                    WithKey: false
+                });
+                if (!oRequest.query.SELECT?.columns || oRequest.query.SELECT.columns[0] === '*') {
+                    oColumns = [
+                        { ref: ['YY1_TimeSheetKey_TIM'], as: 'ID' },
+                        { ref: ['PersonWorkAgreementExternalID'] },
+                        { ref: ['CompanyCode'] },
+                        { ref: ['TimeSheetRecord'] },
+                        { ref: ['TimeSheetDate'] },
+                        { ref: ['YY1_UnitWholeNr_TIM'], as: 'TimeSheetUnit' },
+                        { ref: ['TimeSheetStatus'], as: 'TimeSheetStatus' }
+                    ];
+                    switch (oRequest.target.name) {
+                        case 'TimeSheetDataService.TimeSheetClientSet':
+                            oColumns.push(
+                                { ref: ['YY1_CustomerKey_TIM'], as: 'Customer' },
+                                { ref: ['YY1_CustomerProjectKey_TIM'], as: 'ProjectID' },
+                                { ref: ['YY1_WBSKey_TIM'], as: 'WorkPackageID' }
+                            );
+                            oRequest.PreOn.SELECT.columns.push(
+                                { ref: ['TimeSheetDataFields_WorkItem'], as: 'WorkItem' },
+                                { ref: ['TimeSheetDataFields_BillingControlCategory'], as: 'BillingControlCategory' }
+                            );
+                            break;
+                        case 'TimeSheetDataService.TimeSheetNonClientSet':
+                            oColumns.push(
+                                { ref: ['YY1_WBSElement_TIM'], as: 'GroupName' }
+                            );
+                            oRequest.PreOn.SELECT.columns.push(
+                                { ref: ['TimeSheetDataFields_TimeSheetTaskType'], as: 'TimeSheetTaskType' }
+                            );
+                            break;
+                    }
+                    oRequest.PreOn.SELECT.columns.push({ ref: ['TimeSheetDataFields_TimeSheetNote'], as: 'TimeSheetNote' });
+                    if (oRequest.query.SELECT.columns) {
+                        oColumns.push(...oRequest.query.SELECT.columns.filter(oItem => oItem !== "*"), { ref: ['YY1_Customer_TIM'], as: 'CustomerName' });
+                    }
+                    oRequest.query.SELECT.columns = oColumns;
+                }
+                oRequest.PreOn.SELECT.columns.push(...oRequest.query.SELECT.columns);
+                oRequest.query.SELECT.columns = oRequest.query.SELECT.columns.filter(oItem => !(['HasActiveEntity', 'HasDraftEntity', 'IsActiveEntity', 'DraftAdministrativeData', 'TimeSheetNote', 'BillingControlCategory', 'WorkItem', 'TimeSheetTaskType'].includes(oItem.ref[0])));
+                oRequest.query.SELECT.columns.push(
+                    { ref: ["TimeSheetDataFields"] },
+                    { ref: ['YY1_TimeSheetKey_TIM'], as: 'ID' },
+                    { ref: ['PersonWorkAgreementExternalID'] },
+                    { ref: ['CompanyCode'] },
+                    { ref: ['YY1_PredecessorKey_TIM'], as: 'PredecessorID' },
+                    { ref: ['TimeSheetPredecessorRecord'] },
+                    { ref: ['TimeSheetRecord'] },
+                    { ref: ['YY1_Customer_TIM'], as: 'CustomerName' }
+                );
+                oLog.warn(oEvent.PreOn, oRequest, "Step1", oRequest.query.SELECT.columns);
+                oRequest.query.SELECT.columns = utils.array.unique(oRequest.query.SELECT.columns);
+                oLog.warn(oEvent.PreOn, oRequest, "Step2", oRequest.query.SELECT.columns);
+                const convertWhere = (/** @type {object} */oIDWhere) => {
+                    return esi.query.SELECT.where.convert(oIDWhere, ["ID", "YY1_TimeSheetKey_TIM"]);
+                };
+                if (oRequest.query.SELECT.from.ref[0].where) {
+                    const oIDWhere = convertWhere(oRequest.query.SELECT.from.ref[0].where);
+                    oRequest.PreOn.WithKey = true;
+                    if (oIDWhere.length == 0) {
+                        oRequest.PreOn.IDEmpty = true;
+                    } else {
+                        oRequest.query.SELECT.from.ref[0].where = oIDWhere;
+                    }
+                    if (!bShowAllStatus && oRequest.query.SELECT?.where && Array.isArray(oRequest.query.SELECT?.where)) {
+                        const oTimeSheetStatusFilter = oRequest.query.SELECT?.where.find((oItem) => (typeof oItem == "object" && oItem?.xpr && Array.isArray(oItem?.xpr) && oItem?.xpr.length == 3 && oItem?.xpr[0]?.ref[0] == 'TimeSheetStatus' && oItem?.xpr[1] == "=" && oItem?.xpr[2]?.val));
+                        if (oTimeSheetStatusFilter)
+                            oRequest.PreOn.FilterOnStatus = oTimeSheetStatusFilter.xpr[2].val;
+                    }
+                } else if (oRequest.query.SELECT.where) {
+                    let oWhereClause = oRequest.query.SELECT.where;
+                    const oWhere = esi.query.SELECT.where.toANDArray(oWhereClause, true);
+                    oLog.info(oEvent.PreOn, oRequest, "1-", oWhere);
+                    const oIDWhere = oWhere.find((oItem) => (oItem[0]?.ref && (oItem[0].ref[0] === "ID" || oItem[0].ref[0] === "YY1_TimeSheetKey_TIM"))) || [];
+                    const oIDtransformedWhere = convertWhere(oIDWhere);
+                    oLog.info(oEvent.PreOn, oRequest, "2-", oIDtransformedWhere);
+                    const oWhereWithoutID = oWhere.filter((oItem) => !(oItem[0]?.ref && (oItem[0].ref[0] === "ID" || oItem[0].ref[0] === "YY1_TimeSheetKey_TIM")));
+                    oLog.info(oEvent.PreOn, oRequest, "3-", oWhereWithoutID);
+                    if (bShowAllStatus && oWhereWithoutID && Array.isArray(oWhereWithoutID)) {
+                        oWhereClause = utils.array.toInterleavedArray(oWhereWithoutID.filter((oItem) => (typeof oItem == "object" && oItem?.xpr && Array.isArray(oItem?.xpr) && oItem?.xpr.length == 3 && oItem?.xpr[0]?.ref[0] == 'TimeSheetStatus' && oItem?.xpr[1] == "=" && oItem?.xpr[2]?.val)), 'and').flat(1);
+                    } else {
+                        oWhereClause = utils.array.toInterleavedArray(oWhereWithoutID, 'and').flat(1);
+                    }
+                    oLog.info(oEvent.PreOn, oRequest, "4-", oWhereClause);
+                    if (!Array.isArray(oWhereClause)) {
+                        oWhereClause = [];
+                    } else if (oWhereClause.length > 0) {
+                        oWhereClause.push("and");
+                    }
+                    if (oIDtransformedWhere.length > 0)
+                        oWhereClause.push(...oIDtransformedWhere);
+                    oLog.info(oEvent.PreOn, oRequest, "User", oRequest.PreOn.User);
+                    if (oWhereClause.length > 0)
+                        oWhereClause.push('and');
+                    oWhereClause.push({ ref: ["PersonWorkAgreementExternalID"] }, "=", { val: oRequest.PreOn.User.PersonExternalID });
+                    oRequest.query.SELECT.where = utils.array.toInterleavedArray(utils.array.unique(utils.array.toArray(esi.query.SELECT.where.toANDArray(oWhereClause))), 'and').flat(1);
+                    oLog.trace(oEvent.PreOn, oRequest, "Query", oRequest.query.SELECT.where);
+                    if (oRequest.query.SELECT.where.length == 0) {
+                        oRequest.PreOn.IDEmpty = true;
+                    }
+                } else {
+                    oRequest.query.SELECT.where = [];
+                    oLog.info(oEvent.PreOn, oRequest, "User", oRequest.PreOn.User);
+                    oRequest.query.SELECT.where.push({ ref: ["PersonWorkAgreementExternalID"] }, "=", { val: oRequest.PreOn.User.PersonExternalID });
+                }
+                oLog.info(oEvent.PreOn, oRequest, "END", oRequest.query.SELECT);
+                return await fNextHandler();
+            });
+        },
+
+        PostOn: async function (oService) {
+            const get = async (sMode, oRequest) => {
+                oLog.info(oEvent.PostOn, oRequest, "[get:" + sMode + "] - BEGIN", oRequest?.data);
+                if (sMode == 'D' && !oRequest?.data?.["ID"]) {
+                    oRequest.data.ID = esi.query.DELETE.getKeyPropertyValueByName(oRequest, "ID");
+                } 
+                if (sMode != 'C' && !oRequest?.data?.["ID"]) {
+                    oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] TimeSheet ID is mandatory");
+                    oRequest.reject(400, 'TimeSheet ID is mandatory');
+                }
+                const oID = uuid.inverse(oRequest.data.ID);
+                if (sMode != 'C' && (!oID || !oID?.["CompanyCode"] || !oID?.["PersonWorkAgreementExternalID"] || !oID?.["TimeSheetRecord"])) {
+                    oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] TimeSheet ID", oRequest.data.ID, "is Invalid!!!");
+                    oRequest.reject(400, 'TimeSheet ID ' + oRequest.data.ID + ' is invalid!!!');
+                }
+                if (sMode != 'C' && (oID.CompanyCode !== oRequest.PreOn.User.CompanyCode || oID.PersonWorkAgreementExternalID !== oRequest.PreOn.User.PersonWorkAgreementExternalID)) {
+                    oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] TimeSheet ID does not belongs to", oRequest.PreOn.User.EmailAddress);
+                    oRequest.reject(400, 'TimeSheet ID does not belongs to ' + oRequest.PreOn.User.EmailAddress);
+                }
+                if (sMode != 'D' && !oRequest?.data?.["TimeSheetDate"]) {
+                    oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] TimeSheet Date is mandatory");
+                    oRequest.reject(400, 'TimeSheet Date is mandatory');
+                }
+                if (sMode != 'D' && !utils.date.isValid(oRequest.data.TimeSheetDate)) {
+                    oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] TimeSheet Date is not valid");
+                    oRequest.reject(400, 'TimeSheet Date is not valid');
+                }
+                oLog.info(oEvent.PostOn, oRequest, "[get:" + sMode + "] oRequest.data :", oRequest.data);
+                oLog.info(oEvent.PostOn, oRequest, "[get:" + sMode + "] User :", oRequest.PreOn.User);
+
+                let dEntryDate = undefined;
+
+                if (!oRequest?.data?.["TimeSheetDate"]) {
+                    const aResult = await oService.run(SELECT.from(oRequest?.target?.name).where({ ID: oRequest?.data?.ID }).columns("TimeSheetDate"));
+                    dEntryDate = aResult?.[0]?.TimeSheetDate ? new Date(aResult[0].TimeSheetDate) : undefined;
+                } else {
+                    dEntryDate = new Date(oRequest.data.TimeSheetDate);
+                }
+
+                const bEditableFlag = helper.ts.isAppEditable(dEntryDate, oModifiableRange);
+
+                if (!bEditableFlag) {
+                    return oRequest.reject(400, `Please select a date in the allowed time range, You can only create, edit or delete entries between ${oModifiableRange.Low.toISOString().slice(0, 10)} and ${oModifiableRange.High.toISOString().slice(0, 10)}.`);
+                }
+
+                let oRequestData = {
+                    "PersonWorkAgreementExternalID": oRequest.PreOn.User.PersonWorkAgreementExternalID,
+                    "CompanyCode": oRequest.PreOn.User.CompanyCode,
+                    "TimeSheetIsReleasedOnSave": (sMode === 'D') ? true : false,
+                    "TimeSheetIsExecutedInTestRun": false,
+                    "TimeSheetOperation": sMode,
+                    "TimeSheetDate": oRequest.data.TimeSheetDate,
+                    "isEditable": bEditableFlag
+                };
+
+                if (sMode != 'C') {
+                    oRequestData["TimeSheetRecord"] = oID.TimeSheetRecord;
+                    if (sMode != 'D') {
+                        oRequestData["YY1_TimeSheetKey_TIM"] = oRequest.data.ID;
+                    }
+                }
+                if (sMode != 'D') {
+                    oRequestData = {
+                        ...oRequestData,
+                        ...{
+                            "TimeSheetDataFields": {
+                                "TimeSheetNote": oRequest.data.TimeSheetNote,
+                                "RecordedHours": (oRequest.data.TimeSheetUnit * 0.1).toFixed(2),
+                                "HoursUnitOfMeasure": "H",
+                                "RejectionReason": "",
+                                "TimeSheetWrkLocCode": ""
+                            },
+                            "YY1_UnitWholeNr_TIM": oRequest.data.TimeSheetUnit,
+                            "YY1_Unit_TIM": oRequest.data.TimeSheetUnit,
+                            // "YY1_ActivityType_TIM": "", //Not used
+                            // "YY1_Title_TIM": "", //Not used
+                            // "YY1_ContractType_TIM": "", //Not used
+                            // "YY1_Deleted_TIM": "",  //Not used
+                            // "YY1_Description_TIM": "00000000000000000000000000000000000000000000000000", //Not used
+                            // "YY1_SDLC_TIM": "", //Not used
+                            // "YY1_StartTime_TIM": "00:00:00", //Not used
+                            // "YY1_EndTime_TIM": "00:00:00", //Not used
+                            // "YY1_WorkItemGrouping_TIM": "",  //Not used
+                            "YY1_PersonnelNumber_TIM": oRequest.PreOn.User.FirstName + " " + oRequest.PreOn.User.LastName + " - " + oRequest.PreOn.User.PersonWorkAgreement,
+                            "YY1_CreatedByUser_TIM": oRequest.PreOn.User.FirstName + " " + oRequest.PreOn.User.LastName + " - " + oRequest.PreOn.User.PersonWorkAgreementExternalID
+                        }
+                    }
+                    switch (oRequest.target.name) {
+                        case 'TimeSheetDataService.TimeSheetClientSet': {
+                            if (!utils.array.hasElement(["Billable", "Non-Billable"], oRequest.data.BillingControlCategory)) {
+                                oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] BillingControlCategory is not valid. It can be either 'Billable' or 'Non-Billable'");
+                                oRequest.reject(400, 'BillingControlCategory is not valid. It can be either "Billable" or "Non-Billable"');
+                            }
+                            const oCustomer = utils.array.toDisArray(await srvMasterData.run(SELECT.from('MasterDataService.CustomerSet').where({ Customer: oRequest.data.Customer }).columns('Customer', 'CustomerName', 'CustomerFullName')));
+                            if (!oCustomer || Array.isArray(oCustomer) || !oCustomer?.["Customer"]) {
+                                oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] Customer is invalid");
+                                oRequest.reject(400, "Customer is invalid");
+                            }
+                            oLog.trace(oEvent.PostOn, oRequest, "[get:" + sMode + "] oCustomer", oCustomer);
+                            const srvProjectData = await esi.connect.to("LocalService.ProjectDataService");
+                            const oCustomerProject = utils.array.toDisArray(await srvProjectData.run(SELECT.from('ProjectDataService.ProjectSet').where({ ProjectID: oRequest.data.ProjectID, Customer: oRequest.data.Customer }).columns('ProjectID', 'ProjectName', 'ProjectDescription')));
+                            if (!oCustomerProject || Array.isArray(oCustomerProject) || !oCustomerProject?.["ProjectID"]) {
+                                oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] Customer Project does not belongs to Customer " + oRequest.data.Customer);
+                                oRequest.reject(400, "Customer Project does not belongs to Customer " + oRequest.data.Customer);
+                            }
+                            oLog.trace(oEvent.PostOn, oRequest, "[get:" + sMode + "] oCustomerProject", oCustomerProject);
+                            const oWorkPackage = utils.array.toDisArray(await srvProjectData.run(SELECT.from('ProjectDataService.ProjectWorkPackageSet').where({ ProjectID: oRequest.data.ProjectID, WorkPackageID: oRequest.data.WorkPackageID }).columns('ProjectID', 'WorkPackageID', 'WorkPackageName', 'Description')));
+                            if (!oWorkPackage || Array.isArray(oWorkPackage) || !oWorkPackage?.["ProjectID"]) {
+                                oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] Work Package does not belongs to Customer Project " + oRequest.data.ProjectID);
+                                oRequest.reject(400, "Work Package does not belongs to Customer Project " + oRequest.data.ProjectID);
+                            }
+                            oLog.trace(oEvent.PostOn, oRequest, "[get:" + sMode + "] oWorkPackage", oWorkPackage);
+                            const oWorkItem = utils.array.toDisArray(await srvProjectData.run(SELECT.from('ProjectDataService.ProjectWorkPackageItemSet').where({ ProjectID: oRequest.data.ProjectID, WorkPackageID: oRequest.data.WorkPackageID, Workitem: oRequest.data.WorkItem }).columns('ProjectID', 'WorkPackageID', 'Workitem', 'Workitemname')));
+                            if (!oWorkItem || Array.isArray(oWorkItem) || !oWorkItem?.["ProjectID"]) {
+                                oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] Work Item does not belongs to Work Package " + oRequest.data.WorkPackageID);
+                                oRequest.reject(400, "Work Item does not belongs to Work Package " + oRequest.data.WorkPackageID);
+                            }
+                            oLog.trace(oEvent.PostOn, oRequest, "[get:" + sMode + "] oWorkItem", oWorkItem);
+                            oRequestData.TimeSheetDataFields = {
+                                ...{
+                                    "ActivityType": "T" + oRequest.PreOn.User.ServiceCostLevel.padStart(3, '0'),
+                                    "WBSElement": oRequest.data.WorkPackageID,
+                                    "WorkItem": oRequest.data.WorkItem,
+                                    "BillingControlCategory": (oRequest.data.BillingControlCategory == "Non-Billable") ? "NON_BILL" : ""
+                                },
+                                ...oRequestData.TimeSheetDataFields
+                            };
+                            oRequestData = {
+                                ...oRequestData,
+                                ...{
+                                    "YY1_BillingControlCate_TIM": oRequest.data.BillingControlCategory,
+                                    "YY1_CustomerKey_TIM": oRequest.data.Customer, //TODO: only needed for client
+                                    "YY1_CustomerProjectKey_TIM": oRequest.data.ProjectID, //TODO: only needed for client
+                                    "YY1_WBSKey_TIM": oRequest.data.WorkPackageID, //TODO: only needed for client
+                                    "YY1_Customer_TIM": oCustomer.CustomerName.slice(0, 100), //TODO: For client : <CustomerNAme> (100 chars)
+                                    "YY1_NameDescription_TIM": oCustomer.CustomerFullName.trim().slice(0, 110), //TODO: only needed for client for CustomeFullName (110 Chars)
+                                    "YY1_CustomerProject_TIM": (oRequest.data.ProjectID + " - " + oCustomerProject.ProjectName).slice(0, 64), //TODO: only needed for client for <CustomerProjectID> - <CustomerProjectDescription>
+                                    "YY1_WorkPackage_TIM": (oRequest.data.ProjectID + " - " + oCustomerProject.ProjectName).slice(0, 64), //TODO: only needed for client for <CustomerProjectID> - <CustomerProjectDescription>
+                                    "YY1_WBSElement_TIM": (oWorkPackage.WorkPackageName + " - " + oRequest.data.WorkPackageID).slice(0, 100), //TODO: to be computed for client in format, <WorkPackageDescription> - <oRequest.data.WorkPackage>
+                                    "YY1_WorkItemName_TIM": oRequest.data.WorkItem, //TODO: only needed for client entry
+                                    "YY1_WorkItemDesc_TIM": (oRequest.data.WorkItem + " - " + oWorkItem.Workitemname).slice(0, 64) //TODO: only needed for client for <WorkItemID> - <WorkItemDescription>
+                                }
+                            };
+                            break;
+                        }
+                        case 'TimeSheetDataService.TimeSheetNonClientSet': {
+                            const oTaskGroup = utils.array.toDisArray(await srvMasterData.run(SELECT.from('MasterDataService.TimeSheetTaskGroupSet').where({ GroupName: oRequest.data.GroupName })));
+                            if (!oTaskGroup || Array.isArray(oTaskGroup) || !oTaskGroup?.["GroupName"]) {
+                                oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] GroupName is invalid");
+                                oRequest.reject(400, "GroupName is invalid");
+                            }
+                            oLog.trace(oEvent.PostOn, oRequest, "[get:" + sMode + "] oTaskGroup", oTaskGroup);
+                            const oTaskType = utils.array.toDisArray(await srvMasterData.run(SELECT.from('MasterDataService.TimeSheetTaskTypeSet').where({ TaskType: oRequest.data.TimeSheetTaskType })));
+                            if (!oTaskType || Array.isArray(oTaskType) || !oTaskType?.["TaskType"]) {
+                                oLog.error(oEvent.PostOn, oRequest, "[get:" + sMode + "] Task Type is invalid");
+                                oRequest.reject(400, "Task Type is invalid");
+                            }
+                            oLog.trace(oEvent.PostOn, oRequest, "[get:" + sMode + "] oTaskType", oTaskType);
+                            oRequestData.TimeSheetDataFields = {
+                                ...{
+                                    "TimeSheetTaskType": oRequest.data.TimeSheetTaskType,
+                                    "TimeSheetTaskLevel": oTaskType.TaskLevel,
+                                    "TimeSheetTaskComponent": oTaskType.TaskComponent,
+                                    "BillingControlCategory": "NON_BILL"
+                                },
+                                ...oRequestData.TimeSheetDataFields
+                            };
+                            oRequestData = {
+                                ...oRequestData,
+                                ...{
+                                    "YY1_BillingControlCate_TIM": "Non-Billable",
+                                    "YY1_Customer_TIM": "Non Client Related Time",
+                                    "YY1_CustomerProject_TIM": "Non Client Related Time",
+                                    "YY1_WBSElement_TIM": oRequest.data.GroupName,
+                                    "YY1_WorkItemDesc_TIM": (oTaskType.TaskType + " - " + oTaskType.TaskTypeDescription).slice(0, 64)
+                                }
+                            };
+                            break;
+                        }
+                    }
+                }
+                oLog.info(oEvent.PostOn, oRequest, "[get:" + sMode + "] - END", oRequestData);
+                return oRequestData;
+            }
+
+            oService.on('READ', [TimeSheetClientSet, TimeSheetNonClientSet], async (oRequest) => {
+                oLog.info(oEvent.PostOn, oRequest, "BEGIN", oRequest.PreOn.User, _LOG`${oRequest.PostOn.data}`);
+                oLog.trace(oEvent.PostOn, oRequest, "data", oRequest.PostOn.data);
+                const { orderBy } = oRequest.query.SELECT;
+                oLog.info(oEvent.PostOn, oRequest, "orderBy", orderBy);
+                if (!oRequest.PostOn.data) {
+                    if (oRequest.PreOn.IDEmpty && oRequest.query.SELECT.from.ref[0].where) {
+                        oLog.trace(oEvent.PostOn, oRequest, "From", oRequest.query.SELECT.from);
+                        oRequest.PreOn.IDEmpty = false;
+                        return utils.array.toDisArray(await oService.run(SELECT.from(oRequest.target.name).where({ ID: oRequest.query.SELECT.from.ref[0].where[2].val })));
+                    } else {
+                        return;
+                    }
+                }
+                oLog.info(oEvent.PostOn, oRequest, "oRequest.PreOn", oRequest.PreOn);
+                const oFilteredData = utils.array.toArray(oRequest.PostOn.data).filter(oItem => (!oRequest.PreOn?.WithKey || (oRequest.PreOn?.WithKey && oRequest.PreOn?.User?.PersonExternalID && oItem.PersonWorkAgreementExternalID == oRequest.PreOn.User.PersonExternalID && (!oRequest.PreOn?.FilterOnStatus || (oRequest.PreOn?.FilterOnStatus && oItem.TimeSheetStatus == oRequest.PreOn.FilterOnStatus)))) && ((oRequest.target.name === "TimeSheetDataService.TimeSheetClientSet" && oItem.CustomerName !== "Non Client Related Time") || (oRequest.target.name === "TimeSheetDataService.TimeSheetNonClientSet" && oItem.CustomerName === "Non Client Related Time")));
+                oLog.info(oEvent.PostOn, oRequest, "oFilteredData", oFilteredData);
+                let oCustomerList = [];
+                const oCustomerNameList = oFilteredData.filter(oItem => oItem?.["Customer"] && oItem?.["CustomerName"]).map(oItem => oItem.CustomerName);
+                oLog.info(oEvent.PostOn, oRequest, "oCustomerNameList", oCustomerNameList);
+                if (oCustomerNameList && oCustomerNameList.length > 0) {
+                    const srvCustomer = await esi.connect.to("LocalService.MasterDataService");
+                    oCustomerList = await srvCustomer.tx(oRequest).run(SELECT.from('MasterDataService.CustomerSet').columns('Customer', 'CustomerName').where({ CustomerName: { in: oCustomerNameList } }));
+                }
+                oLog.info(oEvent.PostOn, oRequest, "oCustomerList", oCustomerList);
+                let oResultData = oFilteredData.map(oData => {
+                    let oResult = oData;
+                    oRequest.PreOn.SELECT.columns.map(oItem => oItem["as"] ? oItem.as : oItem.ref[0]).forEach(oItem => {
+                        oResult[oItem] = oData.TimeSheetDataFields?.[oItem] ? oData.TimeSheetDataFields[oItem] : oData[oItem];
+                    });
+                    if (oResult?.["TimeSheetDataFields"])
+                        delete oResult["TimeSheetDataFields"];
+                    return oResult;
+                });
+                oLog.info(oEvent.PostOn, oRequest, "oResultData", oResultData?.length);
+                oLog.info(oEvent.PostOn, oRequest, "oResultData", oResultData);
+                oResultData.forEach(oData => {
+                    if (!oData?.["ID"] || oData.ID.trim() === "") {
+                        oLog.info(oEvent.PostOn, oRequest, "ID is blank, setting it with correct value");
+                        oData.ID = uuid.converse({ CompanyCode: oData.CompanyCode, TimeSheetRecord: oData.TimeSheetRecord, PersonWorkAgreementExternalID: oData.PersonWorkAgreementExternalID });
+                    }
+                    if ((!oData?.["PredecessorID"] || oData.PredecessorID.trim() === "") && oData.TimeSheetPredecessorRecord != "") {
+                        oLog.info(oEvent.PostOn, oRequest, "PredecessorID is blank, setting it with correct value");
+                        oData.PredecessorID = uuid.converse({ CompanyCode: oData.CompanyCode, TimeSheetRecord: oData.TimeSheetPredecessorRecord, PersonWorkAgreementExternalID: oData.PersonWorkAgreementExternalID });
+                    }
+                    if (oData?.["TimeSheetDate"]) {
+                        oData.TimeSheetDate = oData.TimeSheetDate.split('T')[0];
+                    }
+                    if (oData?.["Customer"] && oData?.["CustomerName"] && oData.Customer == '' && oCustomerList.filter(oItem => oItem.CustomerName === oData["CustomerName"]).length == 1) {
+                        oData.Customer = oCustomerList.find(oItem => oItem.CustomerName === oData["CustomerName"]).Customer;
+                    }
+                    oData.BillingControlCategory = oData?.BillingControlCategory == 'NON_BILL' ? 'Non-Billable' : 'Billable';
+                    delete oData["CustomerName"];
+                    delete oData["TimeSheetRecord"];
+                    delete oData["TimeSheetPredecessorRecord"];
+                });
+                oLog.trace(oEvent.PostOn, oRequest, "END", "orderBy", orderBy, "ResultData", oResultData);
+                oLog.info(oEvent.PostOn, oRequest, "END", "orderBy", orderBy, "ResultData", _LOG`${oResultData}`);
+                if (orderBy)
+                    oResultData = utils.array.sort(oResultData, orderBy.filter(oItem => !oItem?.implicit).map(oItem => oItem.ref[0] === 'TimeSheetUnit' ? { ...oItem, function: "parseFloat" } : { ...oItem }));
+                return utils.array.projection(utils.array.order(oResultData, oRequest.PreOn?.entity?.columns), oRequest.PreOn?.entity?.columns);
+            });
+
+            oService.on(['CREATE', 'UPDATE', 'DELETE'], [TimeSheetClientSet, TimeSheetNonClientSet], async (oRequest) => {
+                oLog.info(oEvent.PostOn, oRequest, "BEGIN", "User", oRequest.PreOn, "Data", oRequest.data);
+                return await esi.service.handleEvent(await esi.connect.to("RemoteService.s4h.TimeSheet"), oRequest, async (oRequest) => {
+                    return await get(oRequest.event.charAt(0), oRequest);
+                });
+            });
+        },
+
+        PostAfter: async function (oService) {
+            const transform = async (sTargetName, oColumns, oData, oDataM) => {
+                let oMap = {
+                    "ID": "YY1_TimeSheetKey_TIM",
+                    "PredecessorID": "YY1_PredecessorKey_TIM",
+                    "TimeSheetDate": "TimeSheetDate",
+                    "TimeSheetUnit": "YY1_Unit_TIM",
+                    "TimeSheetNote": "TimeSheetDataFields.TimeSheetNote",
+                    "PersonWorkAgreementExternalID": "PersonWorkAgreementExternalID",
+                    "CompanyCode": "CompanyCode",
+                    "TimeSheetPredecessorRecord": "TimeSheetPredecessorRecord",
+                    "TimeSheetRecord": "TimeSheetRecord",
+                    "TimeSheetStatus": "TimeSheetStatus"
+                }
+                switch (sTargetName) {
+                    case 'TimeSheetDataService.TimeSheetClientSet':
+                        oMap = utils.json.merge(oMap, {
+                            "Customer": "YY1_CustomerKey_TIM",
+                            "ProjectID": "YY1_CustomerProjectKey_TIM",
+                            "WorkPackageID": "YY1_WBSKey_TIM",
+                            "WorkItem": "TimeSheetDataFields.WorkItem",
+                            "BillingControlCategory": "YY1_BillingControlCate_TIM"
+                        });
+                        break;
+                    case 'TimeSheetDataService.TimeSheetNonClientSet':
+                        oMap = utils.json.merge(oMap, {
+                            "GroupName": "YY1_WBSElement_TIM",
+                            "TimeSheetTaskType": "TimeSheetDataFields.TimeSheetTaskType"
+                        });
+                        break;
+                }
+                const oResult = utils.array.projection(utils.array.order(utils.array.map(utils.array.toDisArray(oDataM), oMap), oColumns), oColumns);
+                for (const sKey in oData) {
+                    delete oData[sKey];
+                }
+                Object.assign(oData, oResult);
+            };
+
+            oService.after('READ', [TimeSheetClientSet, TimeSheetNonClientSet], esi.service.handleCount);
+
+            oService.after(['CREATE', 'UPDATE', 'DELETE'], [TimeSheetClientSet, TimeSheetNonClientSet], async (oData, oRequest) => {
+                oLog.info(oEvent.PostAfter, oRequest, "BEGIN", oRequest.PreOn, oData);
+                let oDataM = {};
+                if (oRequest.event === 'DELETE') {
+                    oDataM = oData;
+                } else {
+                    oData.YY1_TimeSheetKey_TIM = uuid.converse({ CompanyCode: oData.CompanyCode, TimeSheetRecord: oData.TimeSheetRecord, PersonWorkAgreementExternalID: oData.PersonWorkAgreementExternalID });
+                    oData.YY1_PredecessorKey_TIM = oData.TimeSheetPredecessorRecord !== "" ? uuid.converse({ CompanyCode: oData.CompanyCode, TimeSheetRecord: oData.TimeSheetPredecessorRecord, PersonWorkAgreementExternalID: oData.PersonWorkAgreementExternalID }) : oData.YY1_PredecessorKey_TIM;
+                    oData.TimeSheetOperation = 'U';
+                    oData.TimeSheetIsReleasedOnSave = true;
+                    const srvTimeSheet = await esi.connect.to(esi.service.get(oRequest));
+                    oDataM = await srvTimeSheet.tx(oRequest).create(oRequest.target.projection.from.ref[0]).entries(oData);
+                }
+                oLog.info(oEvent.PostAfter, oRequest, "oDataM", oDataM);
+                await transform(oRequest.target.name, oRequest.PreOn?.entity?.columns, oData, oDataM);
+                oLog.info(oEvent.PostAfter, oRequest, "END", oData);
+            });
+        }
+    }, [TimeSheetClientSet, TimeSheetNonClientSet]);
+}); 
