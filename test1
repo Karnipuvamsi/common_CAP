@@ -1,1 +1,13 @@
-https://genpact-llc-genpact-sap-ba-studio-56v4fjiz-dev-simplecap-srv.cfapps.us10-001.hana.ondemand.com
+Key
+HTML5.DynamicDestination
+Value
+true
+Key
+WebIDEEnabled
+Value
+true
+Key
+WebIDEUsage
+Value
+odata_gen
+.
