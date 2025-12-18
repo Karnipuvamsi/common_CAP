@@ -1,13 +1,26 @@
-Key
-HTML5.DynamicDestination
-Value
-true
-Key
-WebIDEEnabled
-Value
-true
-Key
-WebIDEUsage
-Value
-odata_gen
-.
+- name: simplecap-destination-content
+  type: com.sap.application.content
+  requires:
+    - name: simplecap-destination
+      parameters:
+        content-target: true
+    - name: srv-api
+    - name: simplecap-auth
+  parameters:
+    content:
+      subaccount:
+        destinations:
+          - Name: simplecap-srv
+            URL: ~{srv-api/srv-url}
+            Authentication: OAuth2UserTokenExchange
+            ServiceInstanceName: simplecap-auth
+            ForwardAuthToken: true
+            sap.cloud.service: simplecap
+
+            HTML5.DynamicDestination: true
+            WebIDEEnabled: true
+            WebIDEUsage: odata_gen
+
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
