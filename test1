@@ -1,105 +1,6 @@
-_schema-version: "3.2"
-ID: ScannerAppProject
-version: 0.0.1
-modules:
-- name: ScannerAppProject-destination-content
-  type: com.sap.application.content
-  requires:
-  - name: uaa_ScannerAppProject
-    parameters:
-      service-key:
-        name: uaa_ScannerAppProject-key
-  - name: ScannerAppProject_html_repo_host
-    parameters:
-      service-key:
-        name: ScannerAppProject_html_repo_host-key
-  - name: ScannerAppProject-destination-service
-    parameters:
-      content-target: true
-  parameters:
-    content:
-      subaccount:
-        destinations:
-        - Name: be_wl_scannerapp_ScannerAppProject_html_repo_host
-          ServiceInstanceName: ScannerAppProject-html5-app-host-service
-          ServiceKeyName: ScannerAppProject_html_repo_host-key
-          sap.cloud.service: be.wl.scanner
-        - Authentication: OAuth2UserTokenExchange
-          Name: be_wl_scannerapp_uaa_ScannerAppProject
-          ServiceInstanceName: ScannerAppProject-xsuaa-service
-          ServiceKeyName: uaa_ScannerAppProject-key
-          sap.cloud.service: be.wl.scanner
-        existing_destinations_policy: update
-  build-parameters:
-    no-source: true
-- name: ScannerAppProject_ui_deployer
-  type: com.sap.application.content
-  path: .
-  requires:
-  - name: ScannerAppProject_html_repo_host
-    parameters:
-      content-target: true
-  build-parameters:
-    build-result: resources
-    requires:
-    - artifacts:
-      - ScannerApp-content.zip
-      name: ScannerApp
-      target-path: resources/
-    - artifacts:
-      - ScannerAppLibrary-content.zip
-      name: ScannerAppLibrary
-      target-path: resources/
-- name: ScannerApp
-  type: html5
-  path: ScannerApp
-  build-parameters:
-    builder: custom
-    commands:
-    - npm run build
-    supported-platforms: []
-- name: ScannerAppLibrary
-  type: html5
-  path: ScannerAppLibrary
-  build-parameters:
-    builder: custom
-    commands:
-    - npm run build
-    supported-platforms: []
-resources:
-- name: ScannerAppProject-destination-service
-  type: org.cloudfoundry.managed-service
-  parameters:
-    service: destination
-    service-name: ScannerAppProject-destination-service
-    service-plan: lite
-- name: ScannerAppProject_html_repo_host
-  type: org.cloudfoundry.managed-service
-  parameters:
-    service: html5-apps-repo
-    service-name: ScannerAppProject-html5-app-host-service
-    service-plan: app-host
-- name: uaa_ScannerAppProject
-  type: org.cloudfoundry.managed-service
-  parameters:
-    path: ./xs-security.json
-    service: xsuaa
-    service-name: ScannerAppProject-xsuaa-service
-    service-plan: application
-build-parameters:
-  before-all:
-  - builder: custom
-    commands:
-    - npm install
-
-
-as yu can see here there will be 2 sub account level destination will be created 
-
-
 _schema-version: 3.3.0
 ID: simplecap
 version: 1.0.0
-description: "A simple CAP project."
 
 parameters:
   enable-parallel-deployments: true
@@ -118,11 +19,8 @@ modules:
     path: gen/srv
     parameters:
       instances: 1
-      buildpack: nodejs_buildpack
-    build-parameters:
-      builder: npm-ci
     provides:
-      - name: srv-api               # provided so other modules can consume the service URL
+      - name: srv-api
         properties:
           srv-url: ${default-url}
     requires:
@@ -133,12 +31,10 @@ modules:
   - name: simplecap-db-deployer
     type: hdb
     path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
     requires:
       - name: simplecap-db
 
-  # Destination Content - creates a destination pointing to simplecap-srv
+  # SUBACCOUNT Destination Content (IMPORTANT)
   - name: simplecap-destination-content
     type: com.sap.application.content
     requires:
@@ -149,12 +45,12 @@ modules:
       - name: simplecap-auth
     parameters:
       content:
-        instance:
+        subaccount:
           destinations:
             - Name: simplecap-srv
               URL: ~{srv-api/srv-url}
               Authentication: OAuth2UserTokenExchange
-              ServiceInstanceName: simplecap-auth   # must match xsuaa resource name
+              ServiceInstanceName: simplecap-auth
               ForwardAuthToken: true
               sap.cloud.service: simplecap
           existing_destinations_policy: update
@@ -162,41 +58,24 @@ modules:
       no-source: true
 
 resources:
-  # XSUAA (Auth)
+  # XSUAA
   - name: simplecap-auth
     type: org.cloudfoundry.managed-service
     parameters:
       service: xsuaa
       service-plan: application
       path: ./xs-security.json
-      config:
-        xsappname: simplecap-xsapp
-        tenant-mode: dedicated
 
-  # HANA HDI container
+  # HANA
   - name: simplecap-db
     type: com.sap.xs.hdi-container
     parameters:
       service: hana
       service-plan: hdi-shared
 
-  # Destination service
+  # Destination service (carrier only)
   - name: simplecap-destination
     type: org.cloudfoundry.managed-service
     parameters:
-      config:
-        HTML5Runtime_enabled: true
-        init_data:
-          instance:
-            destinations:
-            - Authentication: NoAuthentication
-              Name: ui5
-              ProxyType: Internet
-              Type: HTTP
-              URL: https://ui5.sap.com
-            existing_destinations_policy: update
-        version: 1.0.0
       service: destination
-      service-name: simplecap-destination
       service-plan: lite
-  here when this will be deploed an destination serive will be created under tahta 2 destination will be there if not wrong i want instaed of destination serivie i want that simplecap-srv at sub accpunt level how the above example is working did u get it what i am saying give me updated mta file
