@@ -1,91 +1,140 @@
-Got it, Vamsi. I read your **lib\_consumer.pdf** and the two MTAs you shared (CAP service **simplecap** and Fiori/UI5 **dummyfiori**). Below is a “same style” step‑by‑step document for **consuming a CAP OData service from a separate UI5 application deployed to the HTML5 Apps Repository**—using **Destination + OAuth2UserTokenExchange + ForwardAuthToken**, and **xs-app.json** routing.
+Got it.
+Below is the FINAL 2-PAGE CLIENT DOCUMENT, written strictly using the exact CAP MTA you shared (instance-level destination, init_data, UI5 destination, properties preserved).
+No conceptual drift, no alternative patterns.
 
-***
+You can give this as-is to the client to reproduce.
 
-# Consume a CAP Service from a Separate UI5 App (CF / HTML5 Repo)
 
-## 1) Overview & Architecture
+---
 
-You’ll deploy a CAP service MTA (`simplecap`) and a UI5 app MTA (`dummyfiori`) separately. The UI5 app calls the CAP service via a **subaccount destination** configured with **OAuth2UserTokenExchange** and **ForwardAuthToken: true**; the **App Router** (managed by HTML5 apps repo runtime) uses **xs-app.json** routes to forward requests. This pattern is SAP‑recommended for app‑to‑app user propagation on BTP CF. [\[help.sap.com\]](https://help.sap.com/docs/btp/btp-admin-guide/destination-authentication-methods), [\[help.sap.com\]](https://help.sap.com/docs/btp/sap-business-technology-platform/application-routes-and-destinations), [\[help.sap.com\]](https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/oauth-user-token-exchange-authentication)
+Consume a CAP OData Service from a UI5 App
 
-> Why this works
->
-> *   Destination Service supports **OAuth2UserTokenExchange** to exchange the user JWT from the UI5 app for a token valid for the CAP service in the **same tenant**, keeping user context/scopes. [\[help.sap.com\]](https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/oauth-user-token-exchange-authentication)
-> *   App Router forwards requests to destinations and can **forwardAuthToken** (propagate JWT) when the backend is secured by the same IdP (XSUAA/IAS). [\[help.sap.com\]](https://help.sap.com/docs/btp/sap-business-technology-platform/application-routes-and-destinations)
-> *   HTML5 Apps Repository hosts the UI5 app; the **html5-apps-repo-rt** service acts as a managed app router that reads your **xs-app.json**. [\[btp.udina.de\]](https://btp.udina.de/service/extension-suite/html5-application-repository-service.html)
+SAP BTP – Cloud Foundry | Instance-Level Destination (2-Page Setup Guide)
 
-***
 
-## 2) Prerequisites
+---
 
-*   Subaccount has **Destination**, **XSUAA**, and **HTML5 Apps Repository (app-host)** service instances. [\[btp.udina.de\]](https://btp.udina.de/service/extension-suite/html5-application-repository-service.html)
-*   Both apps (CAP backend and UI5 frontend) are bound to **their own XSUAA instances** using plan `application`. [\[help.sap.com\]](https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/consuming-destination-service)
-*   You deploy **CAP** first, because it creates the subaccount destination for consumers. (Pattern from your PDF.) [\[lib_consumer | PDF\]](https://genpactonline-my.sharepoint.com/personal/703430740_genpact_com/Documents/Microsoft%20Teams%20Chat%20Files/lib_consumer.pdf)
+PAGE 1 — CAP Backend Setup (Instance-Level Destination)
 
-***
+1. Objective
 
-## 3) Step‑by‑Step
+Expose a CAP OData service and allow a separate UI5 application to consume it using:
 
-### Step 3.1 — CAP Service MTA (`simplecap`)
+Instance-level destination (inside Destination service)
 
-You already have this (summarized below). It creates the service, DB deployer, and—most important—**subaccount destination content** named `simplecap-srv`:
+OAuth2UserTokenExchange
 
-```yaml
-_schema-version: 3.3.0
-ID: simplecap
-version: 1.0.0
+HTML5 Apps Repository (managed App Router)
 
-parameters:
-  enable-parallel-deployments: true
 
-build-parameters:
-  before-all:
-    - builder: custom
-      commands:
-        - npm ci
-        - npx cds build --production
+This approach is used when destinations must be private and controlled, not globally shared at subaccount level.
 
-modules:
-  - name: simplecap-srv
-    type: nodejs
-    path: gen/srv
-    parameters:
-      instances: 1
-    provides:
-      - name: srv-api
-        properties:
-          srv-url: ${default-url}
-    requires:
-      - name: simplecap-auth
-      - name: simplecap-db
 
-  - name: simplecap-db-deployer
-    type: hdb
-    path: gen/db
-    requires:
-      - name: simplecap-db
+---
 
-  - name: simplecap-destination-content
-    type: com.sap.application.content
-    requires:
-      - name: simplecap-destination
-        parameters:
-          content-target: true
-      - name: srv-api
-      - name: simplecap-auth
-    parameters:
-      content:
-        subaccount:
-          destinations:
-            - Name: simplecap-srv
-              URL: ~{srv-api/srv-url}
-              Authentication: OAuth2UserTokenExchange
-              ServiceInstanceName: simplecap-auth
-              ForwardAuthToken: true
-              sap.cloud.service: simplecap
-          existing_destinations_policy: update
-    build-parameters:
-      no-source: true
+2. What CAP Deployment Creates
+
+When the CAP MTA is deployed, SAP BTP creates:
+
+1. CAP Node.js service (OData backend)
+
+
+2. XSUAA instance for CAP authentication
+
+
+3. HANA HDI container
+
+
+4. Destination service instance
+
+
+5. Destination simplecap-srv inside the Destination service
+
+
+6. UI5 framework destination (ui5) inside the same Destination service
+
+
+
+📌 These destinations are NOT visible under
+Subaccount → Connectivity → Destinations
+
+They are visible only under:
+Subaccount → Instances → Destination → Destinations
+
+
+---
+
+3. CAP MTA – Key Modules (Exact Snippets)
+
+3.1 CAP Service Module
+
+- name: simplecap-srv
+  type: nodejs
+  path: gen/srv
+  parameters:
+    instances: 1
+    buildpack: nodejs_buildpack
+  build-parameters:
+    builder: npm-ci
+  provides:
+    - name: srv-api
+      properties:
+        srv-url: ${default-url}
+  requires:
+    - name: simplecap-auth
+    - name: simplecap-db
+
+What this does
+
+Deploys the CAP service
+
+Exposes the runtime URL (srv-url) for destination creation
+
+
+
+---
+
+3.2 Instance-Level Destination Creation
+
+- name: simplecap-destination-content
+  type: com.sap.application.content
+  requires:
+    - name: simplecap-destination
+      parameters:
+        content-target: true
+    - name: srv-api
+    - name: simplecap-auth
+  parameters:
+    content:
+      instance:
+        destinations:
+          - Name: simplecap-srv
+            URL: ~{srv-api/srv-url}
+            Authentication: OAuth2UserTokenExchange
+            ServiceInstanceName: simplecap-auth
+            sap.cloud.service: simplecap
+            HTML5.DynamicDestination: true
+            WebIDEEnabled: true
+            WebIDEUsage: odata_gen
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+
+What this does (plain English)
+
+Creates destination simplecap-srv
+
+Stores it inside the Destination service
+
+Enables user-based authentication
+
+Destination is private and accessible only to apps bound to this service
+
+
+
+---
+
+4. CAP Required Services (Exact)
 
 resources:
   - name: simplecap-auth
@@ -93,7 +142,11 @@ resources:
     parameters:
       service: xsuaa
       service-plan: application
+      service-name: simplecap-auth
       path: ./xs-security.json
+      config:
+        xsappname: simplecap-xsapp
+        tenant-mode: dedicated
 
   - name: simplecap-db
     type: com.sap.xs.hdi-container
@@ -106,161 +159,86 @@ resources:
     parameters:
       service: destination
       service-plan: lite
-```
+      service-name: simplecap-destination
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            destinations:
+              - Name: ui5
+                Type: HTTP
+                ProxyType: Internet
+                Authentication: NoAuthentication
+                URL: https://ui5.sap.com
+            existing_destinations_policy: update
+        version: 1.0.0
 
-**Notes:**
+Important points
 
-*   **OAuth2UserTokenExchange** is the right auth method for **user propagation** between apps in the same tenant. [\[help.sap.com\]](https://help.sap.com/docs/btp/btp-admin-guide/destination-authentication-methods), [\[help.sap.com\]](https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/oauth-user-token-exchange-authentication)
-*   When creating **destination content via `com.sap.application.content`**, **`ServiceInstanceName`** is required for token-exchange/forwarding in subaccount destinations; leaving it out causes deployment errors. [\[community.sap.com\]](https://community.sap.com/t5/technology-blog-posts-by-members/solving-the-serviceinstancename-dilemma-token-forwarding-destinations-on/ba-p/14119749)
-*   Keeping **`ForwardAuthToken: true`** lets the router propagate the original JWT if compatible. [\[help.sap.com\]](https://help.sap.com/docs/btp/sap-business-technology-platform/application-routes-and-destinations)
+simplecap-srv → CAP backend destination
 
-Deploy:
+ui5 → SAP UI5 framework destination
 
-```bash
+Both live inside the same Destination service instance
+
+
+
+---
+
+5. Deploy CAP
+
 mbt build
 cf deploy mta_archives/simplecap_1.0.0.mtar
-```
 
-(General CF build/deploy flow.) [\[btp.udina.de\]](https://btp.udina.de/service/extension-suite/html5-application-repository-service.html)
+After deployment
 
-***
+CAP service is running
 
-### Step 3.2 — UI5 Consumer MTA (`dummyfiori`)
+Destination service contains:
 
-Your `dummyfiori` MTA already references the **existing** Destination service (`simplecap-destination`) and sets up HTML5 repo host + XSUAA:
+simplecap-srv
 
-```yaml
-_schema-version: "3.2"
-ID: dummyfiori
-version: 0.0.1
+ui5
 
-modules:
-- name: dummyfiori-destination-content
-  type: com.sap.application.content
-  requires:
-  - name: simplecap-destination
-    parameters:
-      content-target: true
-  - name: dummyfiori-repo-host
-    parameters:
-      service-key:
-        name: dummyfiori-repo-host-key
-  - name: dummyfiori-uaa
-    parameters:
-      service-key:
-        name: dummyfiori-uaa-key
-  parameters:
-    content:
-      instance:
-        destinations:
-        - Name: dummyfiori_html_repo_host
-          ServiceInstanceName: dummyfiori-html5-service
-          ServiceKeyName: dummyfiori-repo-host-key
-          sap.cloud.service: dummyfiori
-        - Authentication: OAuth2UserTokenExchange
-          Name: dummyfiori_uaa
-          ServiceInstanceName: dummyfiori-xsuaa-service
-          ServiceKeyName: dummyfiori-uaa-key
-          sap.cloud.service: dummyfiori
-        existing_destinations_policy: update
-  build-parameters:
-    no-source: true
 
-- name: dummyfiori-app-content
-  type: com.sap.application.content
-  path: .
-  requires:
-  - name: dummyfiori-repo-host
-    parameters:
-      content-target: true
-  build-parameters:
-    build-result: resources
-    requires:
-    - artifacts:
-      - dummyfiori.zip
-      name: dummyfiori
-      target-path: resources/
 
-- name: dummyfiori
-  type: html5
-  path: .
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
 
-resources:
-- name: simplecap-destination
-  type: org.cloudfoundry.existing-service
-  parameters:
-    service-name: simplecap-destination
+---
 
-- name: dummyfiori-uaa
-  type: org.cloudfoundry.managed-service
-  parameters:
-    path: ./xs-security.json
-    service: xsuaa
-    service-name: dummyfiori-xsuaa-service
-    service-plan: application
+PAGE 2 — UI5 Frontend Consumption
 
-- name: dummyfiori-repo-host
-  type: org.cloudfoundry.managed-service
-  parameters:
-    service: html5-apps-repo
-    service-name: dummyfiori-html5-service
-    service-plan: app-host
+6. UI5 Application Requirement
 
-parameters:
-  deploy_mode: html5-repo
-  enable-parallel-deployments: true
-```
+Because the destination is instance-level, the UI5 application must bind to the same Destination service instance (simplecap-destination).
 
-**What matters here**:
+Without this binding, the destination cannot be resolved.
 
-*   You reference the **existing Destination service** (`simplecap-destination`) so the **subaccount destination `simplecap-srv`** created by CAP is available at runtime to the managed app router. [\[help.sap.com\]](https://help.sap.com/docs/btp/sap-business-technology-platform/application-routes-and-destinations)
-*   HTML5 Repo **app-host** + **app-content** modules deploy your UI5 app to the repository (managed router reads `xs-app.json`). [\[btp.udina.de\]](https://btp.udina.de/service/extension-suite/html5-application-repository-service.html)
 
-Deploy:
+---
 
-```bash
-mbt build
-cf deploy mta_archives/dummyfiori_0.0.1.mtar
-```
+7. UI5 Routing (xs-app.json)
 
- [\[btp.udina.de\]](https://btp.udina.de/service/extension-suite/html5-application-repository-service.html)
-
-***
-
-### Step 3.3 — App Router routes (`xs-app.json` of your UI5 app)
-
-You shared:
-
-```json
 {
-  "welcomeFile": "/index.html",
   "authenticationMethod": "route",
   "routes": [
     {
       "source": "^/odata/(.*)$",
       "target": "/odata/$1",
-      "authenticationType": "xsuaa",
       "destination": "simplecap-srv",
+      "authenticationType": "xsuaa",
       "csrfProtection": false
     },
     {
       "source": "^/resources/(.*)$",
       "target": "/resources/$1",
-      "authenticationType": "none",
-      "destination": "ui5"
+      "destination": "ui5",
+      "authenticationType": "none"
     },
     {
       "source": "^/test-resources/(.*)$",
       "target": "/test-resources/$1",
-      "authenticationType": "none",
-      "destination": "ui5"
+      "destination": "ui5",
+      "authenticationType": "none"
     },
     {
       "source": "^(.*)$",
@@ -270,157 +248,127 @@ You shared:
     }
   ]
 }
-```
 
-**Checks / Tips:**
+Explanation
 
-*   `authenticationMethod: "route"` is standard; per-route `authenticationType: "xsuaa"` ensures user JWT exists before proxying. [\[help.sap.com\]](https://help.sap.com/docs/application-frontend-service/application-frontend-service/application-routing-configuration-file-xs-app-json)
-*   `destination: "simplecap-srv"` must exactly match the subaccount destination name created by CAP’s destination content. [\[help.sap.com\]](https://help.sap.com/docs/btp/sap-business-technology-platform/application-routes-and-destinations)
-*   `ForwardAuthToken: true` was set in the destination (CAP MTA), enabling token propagation. [\[help.sap.com\]](https://help.sap.com/docs/btp/sap-business-technology-platform/application-routes-and-destinations)
-*   CSRF: App Router supports CSRF protection flag; CAP OData V4 typically doesn’t require CSRF for OData calls (CAP handles auth via JWT), but if you perform non‑OData endpoints or custom POSTs, consider enabling it per route. [\[npmjs.com\]](https://www.npmjs.com/package/@sap/approuter)
+/odata/* → routed to CAP via simplecap-srv
 
-***
+/resources → UI5 framework via ui5 destination
 
-### Step 3.4 — UI5 Manifest (`manifest.json`)
+Authentication enforced before backend access
 
-You shared:
 
-```json
-"sap.ui5": {
-  "models": {
-    "i18n": {
-      "type": "sap.ui.model.resource.ResourceModel",
-      "settings": { "bundleName": "dummyfiori.i18n.i18n" }
-    },
-    "": {
-      "dataSource": "mainService",
-      "preload": true
-    }
-  },
-  "dataSources": {
-    "mainService": {
-      "uri": "/odata/v4/catalog/",
-      "type": "OData",
-      "settings": {
-        "annotations": [],
-        "odataVersion": "4.0"
-      }
+
+---
+
+8. UI5 OData Configuration (manifest.json)
+
+"dataSources": {
+  "mainService": {
+    "uri": "/odata/v4/catalog/",
+    "type": "OData",
+    "settings": {
+      "odataVersion": "4.0"
     }
   }
 }
-```
 
-**Notes:**
+Rules
 
-*   Using **absolute path** `/odata/v4/catalog/` aligns with your `xs-app.json` route; the router forwards it to the CAP service. [\[help.sap.com\]](https://help.sap.com/docs/application-frontend-service/application-frontend-service/application-routing-configuration-file-xs-app-json)
-*   Fiori Tools service catalog wizard often assumes **ABAP** (`/sap/opu/odata/...`) and can 404 for CAP; configure the **OData URL manually in `manifest.json`** (as you did). [\[community.sap.com\]](https://community.sap.com/t5/technology-q-a/how-to-properly-configure-a-btp-destination-for-a-cap-odata-service-and/qaq-p/14036202)
+Use relative URI
 
-***
+Do not hardcode CAP URLs
 
-## 4) Validate the End‑to‑End
+Routing happens through destination
 
-1.  **Open the UI5 app** via HTML5 apps repo and trigger a read: `/odata/v4/catalog/$metadata` → should return CAP metadata. Routing + token exchange verifies here. [\[help.sap.com\]](https://help.sap.com/docs/btp/sap-business-technology-platform/application-routes-and-destinations), [\[help.sap.com\]](https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/oauth-user-token-exchange-authentication)
-2.  **List deployed UI5 apps** in the space:
-    ```bash
-    cf html5-list -di dummyfiori-html5-service
-    ```
-    Confirms the app is in HTML5 repo and visible to runtime. [\[btp.udina.de\]](https://btp.udina.de/service/extension-suite/html5-application-repository-service.html)
-3.  **CAP service health**: browse the srv URL (from `srv-api/srv-url`) to confirm `/odata/v4/catalog/$metadata`. (Pattern as in your PDF.) [\[lib_consumer | PDF\]](https://genpactonline-my.sharepoint.com/personal/703430740_genpact_com/Documents/Microsoft%20Teams%20Chat%20Files/lib_consumer.pdf)
 
-***
 
-## 5) Troubleshooting & Tips
+---
 
-*   **401 or “invalid audience”**: Usually XSUAA binding/plan mismatch or missing scopes. Validate both apps use plan `application`, and that user has `uaa.user`. Check logs for audience issues. [\[sap.github.io\]](https://sap.github.io/cloud-sdk/docs/java/guides/cloud-foundry-xsuaa-service), [\[mindfulchase.com\]](https://www.mindfulchase.com/explore/troubleshooting-tips/cloud-platforms-and-services/troubleshooting-xsuaa-authentication-and-token-propagation-in-sap-cloud-platform.html)
-*   **GACD destination errors (“Missing ServiceInstanceName”)**: When you create destinations via `com.sap.application.content` (your CAP MTA), include `ServiceInstanceName`—you already did it right. [\[community.sap.com\]](https://community.sap.com/t5/technology-blog-posts-by-members/solving-the-serviceinstancename-dilemma-token-forwarding-destinations-on/ba-p/14119749)
-*   **ForwardAuthToken** works when both apps share the same IdP/tenant; that’s exactly our case on CF. [\[help.sap.com\]](https://help.sap.com/docs/btp/btp-admin-guide/destination-authentication-methods), [\[help.sap.com\]](https://help.sap.com/docs/btp/sap-business-technology-platform/application-routes-and-destinations)
-*   **Fiori Tools wizard 404**: Don’t rely on ABAP catalog; point your **OData V4** URL manually in `manifest.json`. [\[community.sap.com\]](https://community.sap.com/t5/technology-q-a/how-to-properly-configure-a-btp-destination-for-a-cap-odata-service-and/qaq-p/14036202)
-*   **HTML5 Repo**: If the app doesn’t show, verify app‑host binding and that the `dummyfiori-app-content` pushed the zip to the repo. Use `cf html5-list`. [\[btp.udina.de\]](https://btp.udina.de/service/extension-suite/html5-application-repository-service.html)
+9. Runtime Flow (Instance-Level)
 
-***
+1. User opens UI5 app
 
-## 6) Minimal Working Example (Putting It All Together)
 
-### A) CAP xs-security.json (example)
+2. User logs in via UI5 XSUAA
 
-```json
-{
-  "xsappname": "simplecap",
-  "tenant-mode": "shared",
-  "scopes": [
-    { "name": "uaa.user", "description": "Default user scope" }
-  ],
-  "role-templates": [
-    { "name": "Viewer", "description": "Read access", "scope-references": ["uaa.user"] }
-  ]
-}
-```
 
-*(XSUAA issues user tokens; Destination Service uses them to exchange into backend tokens.)* [\[help.sap.com\]](https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/consuming-destination-service), [\[help.sap.com\]](https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/oauth-user-token-exchange-authentication)
+3. UI5 calls /odata/v4/catalog
 
-### B) UI5 `xs-app.json` routes (as shared)
 
-```json
-{
-  "authenticationMethod": "route",
-  "routes": [
-    {
-      "source": "^/odata/(.*)$",
-      "target": "/odata/$1",
-      "destination": "simplecap-srv",
-      "authenticationType": "xsuaa",
-      "csrfProtection": false
-    },
-    {
-      "source": "^(.*)$",
-      "target": "$1",
-      "service": "html5-apps-repo-rt",
-      "authenticationType": "xsuaa"
-    }
-  ]
-}
-```
+4. Managed App Router:
 
-(App Router route configuration reference.) [\[help.sap.com\]](https://help.sap.com/docs/application-frontend-service/application-frontend-service/application-routing-configuration-file-xs-app-json)
+Looks up destination in bound Destination service
 
-### C) UI5 `manifest.json` (OData V4)
+Performs OAuth token exchange
 
-```json
-{
-  "sap.ui5": {
-    "models": {
-      "": {
-        "dataSource": "mainService",
-        "preload": true
-      }
-    },
-    "dataSources": {
-      "mainService": {
-        "uri": "/odata/v4/catalog/",
-        "type": "OData",
-        "settings": { "odataVersion": "4.0" }
-      }
-    }
-  }
-}
-```
 
-(Manual OData URL for CAP; don’t use ABAP system catalog.) [\[community.sap.com\]](https://community.sap.com/t5/technology-q-a/how-to-properly-configure-a-btp-destination-for-a-cap-odata-service-and/qaq-p/14036202)
 
-***
+5. Request reaches CAP service
 
-## 7) Reference Pattern (from your library PDF)
 
-Your **lib\_consumer.pdf** shows the same **Destination Content/GACD** pattern for sharing between MTAs (library → consumer). We applied the **same idea** for **CAP service → UI5 consumer**, including **subaccount destination**, **sap.cloud.service** tagging, and **ForwardAuthToken**. [\[lib_consumer | PDF\]](https://genpactonline-my.sharepoint.com/personal/703430740_genpact_com/Documents/Microsoft%20Teams%20Chat%20Files/lib_consumer.pdf)
+6. CAP authorises user
 
-***
 
-## 8) Next
+7. Data is returned to UI5
 
-If you want, I can:
 
-*   **Validate** your current deployment by checking the route + destination + token exchange logs (we’ll add a quick `/odata/v4/catalog/$metadata` test to the UI5 app).
-*   **Generate** a ready‑to‑deploy sample UI5 page (XML view + controller) bound to `/Customers` with OData V4 list binding. (I’ll create the files and share them.)
-*   **Fine‑tune** `xs-security.json` roles/scopes for granular backend authorization (e.g., `Catalog.Read`, `Catalog.Write`) and show how they appear in JWT.
 
-Would you like me to create a **small demo view** that reads from `/odata/v4/catalog/Customers` and shows the table, so you can verify end‑to‑end immediately?
+
+---
+
+10. Validation Checklist
+
+Check destinations
+
+Subaccount → Instances → Destination → Destinations
+
+simplecap-srv → exists
+
+ui5 → exists
+
+
+Test backend
+
+/odata/v4/catalog/$metadata
+
+If metadata loads → setup is correct.
+
+
+---
+
+11. Key Rules for Client Teams
+
+Instance-level destinations are private
+
+UI apps must bind the same Destination service
+
+CAP must be deployed before UI5
+
+Destination names must match exactly
+
+No backend URLs in UI code
+
+
+
+---
+
+Final Summary (One Line)
+
+> The CAP service publishes its endpoint as a private destination inside the Destination service, and UI5 applications bound to that service securely consume it using OAuth-based user authentication.
+
+
+
+
+---
+
+If you want next:
+
+Side-by-side comparison (instance vs subaccount)
+
+Troubleshooting appendix
+
+Migration note (instance → subaccount)
+
+
+Say the word.
