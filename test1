@@ -1,142 +1,188 @@
-Got it.
-Below is the FINAL 2-PAGE CLIENT DOCUMENT, written strictly using the exact CAP MTA you shared (instance-level destination, init_data, UI5 destination, properties preserved).
-No conceptual drift, no alternative patterns.
+# _schema-version: 3.3.0
+# ID: simplecap
+# version: 1.0.0
 
-You can give this as-is to the client to reproduce.
+# parameters:
+#   enable-parallel-deployments: true
 
+# build-parameters:
+#   before-all:
+#     - builder: custom
+#       commands:
+#         - npm ci
+#         - npx cds build --production
 
----
+# modules:
+#   # CAP Service
+#   - name: simplecap-srv
+#     type: nodejs
+#     path: gen/srv
+#     parameters:
+#       instances: 1
+#     provides:
+#       - name: srv-api
+#         properties:
+#           srv-url: ${default-url}
+#     requires:
+#       - name: simplecap-auth
+#       - name: simplecap-db
 
-Consume a CAP OData Service from a UI5 App
+#   # DB Deployer
+#   - name: simplecap-db-deployer
+#     type: hdb
+#     path: gen/db
+#     requires:
+#       - name: simplecap-db
 
-SAP BTP – Cloud Foundry | Instance-Level Destination (2-Page Setup Guide)
+#   # SUBACCOUNT Destination Content (IMPORTANT)
+#   - name: simplecap-destination-content
+#     type: com.sap.application.content
+#     requires:
+#       - name: simplecap-destination
+#         parameters:
+#           content-target: true
+#       - name: srv-api
+#       - name: simplecap-auth
+#     parameters:
+#       content:
+#         subaccount:
+#           destinations:
+#             - Name: simplecap-srv
+#               URL: ~{srv-api/srv-url}
+#               Authentication: OAuth2UserTokenExchange
+#               ServiceInstanceName: simplecap-auth
+#               ForwardAuthToken: true
+#               sap.cloud.service: simplecap
+#               HTML5.DynamicDestination: true
+#               WebIDEEnabled: true
+#               WebIDEUsage: odata_gen
 
+#           existing_destinations_policy: update
+#     build-parameters:
+#       no-source: true
+# resources:
+#   # XSUAA
+#   - name: simplecap-auth
+#     type: org.cloudfoundry.managed-service
+#     parameters:
+#       service: xsuaa
+#       service-plan: application
+#       path: ./xs-security.json
 
----
+#   # HANA
+#   - name: simplecap-db
+#     type: com.sap.xs.hdi-container
+#     parameters:
+#       service: hana
+#       service-plan: hdi-shared
 
-PAGE 1 — CAP Backend Setup (Instance-Level Destination)
+#   # Destination service (carrier only)
+#   - name: simplecap-destination
+#     type: org.cloudfoundry.managed-service
+#     parameters:
+#       service: destination
+#       service-plan: lite
 
-1. Objective
+_schema-version: 3.3.0
+ID: simplecap
+version: 1.0.0
+description: "CAP project with instance-level destination"
 
-Expose a CAP OData service and allow a separate UI5 application to consume it using:
+parameters:
+  enable-parallel-deployments: true
 
-Instance-level destination (inside Destination service)
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
 
-OAuth2UserTokenExchange
+modules:
+  # ---------------- CAP Service ----------------
+  - name: simplecap-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: simplecap-auth
+      - name: simplecap-db
 
-HTML5 Apps Repository (managed App Router)
+  # ---------------- DB Deployer ----------------
+  - name: simplecap-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: simplecap-db
 
+  # ---------------- Destination Content (INSTANCE LEVEL) ----------------
+  - name: simplecap-destination-content
+    type: com.sap.application.content
+    requires:
+      - name: simplecap-destination
+        parameters:
+          content-target: true
+      - name: srv-api
+      - name: app-api
+      - name: simplecap-auth
+    parameters:
+      content:
+        instance:
+          destinations:
+            - Name: simplecap-srv
+              URL: ~{srv-api/srv-url}
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: simplecap-auth
+              sap.cloud.service: simplecap
+              HTML5.DynamicDestination: true
+              WebIDEEnabled: true
+              WebIDEUsage: odata_gen
 
-This approach is used when destinations must be private and controlled, not globally shared at subaccount level.
-
-
----
-
-2. What CAP Deployment Creates
-
-When the CAP MTA is deployed, SAP BTP creates:
-
-1. CAP Node.js service (OData backend)
-
-
-2. XSUAA instance for CAP authentication
-
-
-3. HANA HDI container
-
-
-4. Destination service instance
-
-
-5. Destination simplecap-srv inside the Destination service
-
-
-6. UI5 framework destination (ui5) inside the same Destination service
-
-
-
-📌 These destinations are NOT visible under
-Subaccount → Connectivity → Destinations
-
-They are visible only under:
-Subaccount → Instances → Destination → Destinations
-
-
----
-
-3. CAP MTA – Key Modules (Exact Snippets)
-
-3.1 CAP Service Module
-
-- name: simplecap-srv
-  type: nodejs
-  path: gen/srv
-  parameters:
-    instances: 1
-    buildpack: nodejs_buildpack
-  build-parameters:
-    builder: npm-ci
-  provides:
-    - name: srv-api
-      properties:
-        srv-url: ${default-url}
-  requires:
-    - name: simplecap-auth
-    - name: simplecap-db
-
-What this does
-
-Deploys the CAP service
-
-Exposes the runtime URL (srv-url) for destination creation
-
-
-
----
-
-3.2 Instance-Level Destination Creation
-
-- name: simplecap-destination-content
-  type: com.sap.application.content
-  requires:
-    - name: simplecap-destination
-      parameters:
-        content-target: true
-    - name: srv-api
-    - name: simplecap-auth
-  parameters:
-    content:
-      instance:
-        destinations:
-          - Name: simplecap-srv
-            URL: ~{srv-api/srv-url}
-            Authentication: OAuth2UserTokenExchange
-            ServiceInstanceName: simplecap-auth
-            sap.cloud.service: simplecap
-            HTML5.DynamicDestination: true
-            WebIDEEnabled: true
-            WebIDEUsage: odata_gen
-        existing_destinations_policy: update
-  build-parameters:
-    no-source: true
-
-What this does (plain English)
-
-Creates destination simplecap-srv
-
-Stores it inside the Destination service
-
-Enables user-based authentication
-
-Destination is private and accessible only to apps bound to this service
-
-
-
----
-
-4. CAP Required Services (Exact)
+            - Name: simplecap-approuter
+              URL: https://~{app-api/app-uri}
+              # URL: ~{app-api/app-protocol}://~{app-api/app-uri}
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: simplecap-auth
+              sap.cloud.service: simplecap
+              HTML5.DynamicDestination: true
+              WebIDEEnabled: true
+              WebIDEUsage: odata_gen
+          existing_destinations_policy: update
+    build-parameters:
+      no-source: true
+  - name: simplecap
+    type: approuter.nodejs
+    path: app/router
+    parameters:
+      keep-existing-routes: true
+      disk-quota: 256M
+      memory: 256M
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api # must be used in xs-app.json as well
+          url: ~{srv-url}
+          forwardAuthToken: true
+      - name: simplecap-auth
+    provides:
+      - name: app-api
+        properties:
+          app-protocol: ${protocol}
+          app-uri: ${default-uri}
 
 resources:
+  # ---------------- XSUAA ----------------
   - name: simplecap-auth
     type: org.cloudfoundry.managed-service
     parameters:
@@ -147,13 +193,20 @@ resources:
       config:
         xsappname: simplecap-xsapp
         tenant-mode: dedicated
+        oauth2-configuration:
+          redirect-uris:
+            - https://*~{app-api/app-uri}/**
+    requires:
+      - name: app-api
 
+  # ---------------- HANA HDI ----------------
   - name: simplecap-db
     type: com.sap.xs.hdi-container
     parameters:
       service: hana
       service-plan: hdi-shared
 
+  # ---------------- Destination Service ----------------
   - name: simplecap-destination
     type: org.cloudfoundry.managed-service
     parameters:
@@ -172,203 +225,3 @@ resources:
                 URL: https://ui5.sap.com
             existing_destinations_policy: update
         version: 1.0.0
-
-Important points
-
-simplecap-srv → CAP backend destination
-
-ui5 → SAP UI5 framework destination
-
-Both live inside the same Destination service instance
-
-
-
----
-
-5. Deploy CAP
-
-mbt build
-cf deploy mta_archives/simplecap_1.0.0.mtar
-
-After deployment
-
-CAP service is running
-
-Destination service contains:
-
-simplecap-srv
-
-ui5
-
-
-
-
----
-
-PAGE 2 — UI5 Frontend Consumption
-
-6. UI5 Application Requirement
-
-Because the destination is instance-level, the UI5 application must bind to the same Destination service instance (simplecap-destination).
-
-Without this binding, the destination cannot be resolved.
-
-
----
-
-7. UI5 Routing (xs-app.json)
-
-{
-  "authenticationMethod": "route",
-  "routes": [
-    {
-      "source": "^/odata/(.*)$",
-      "target": "/odata/$1",
-      "destination": "simplecap-srv",
-      "authenticationType": "xsuaa",
-      "csrfProtection": false
-    },
-    {
-      "source": "^/resources/(.*)$",
-      "target": "/resources/$1",
-      "destination": "ui5",
-      "authenticationType": "none"
-    },
-    {
-      "source": "^/test-resources/(.*)$",
-      "target": "/test-resources/$1",
-      "destination": "ui5",
-      "authenticationType": "none"
-    },
-    {
-      "source": "^(.*)$",
-      "target": "$1",
-      "service": "html5-apps-repo-rt",
-      "authenticationType": "xsuaa"
-    }
-  ]
-}
-
-Explanation
-
-/odata/* → routed to CAP via simplecap-srv
-
-/resources → UI5 framework via ui5 destination
-
-Authentication enforced before backend access
-
-
-
----
-
-8. UI5 OData Configuration (manifest.json)
-
-"dataSources": {
-  "mainService": {
-    "uri": "/odata/v4/catalog/",
-    "type": "OData",
-    "settings": {
-      "odataVersion": "4.0"
-    }
-  }
-}
-
-Rules
-
-Use relative URI
-
-Do not hardcode CAP URLs
-
-Routing happens through destination
-
-
-
----
-
-9. Runtime Flow (Instance-Level)
-
-1. User opens UI5 app
-
-
-2. User logs in via UI5 XSUAA
-
-
-3. UI5 calls /odata/v4/catalog
-
-
-4. Managed App Router:
-
-Looks up destination in bound Destination service
-
-Performs OAuth token exchange
-
-
-
-5. Request reaches CAP service
-
-
-6. CAP authorises user
-
-
-7. Data is returned to UI5
-
-
-
-
----
-
-10. Validation Checklist
-
-Check destinations
-
-Subaccount → Instances → Destination → Destinations
-
-simplecap-srv → exists
-
-ui5 → exists
-
-
-Test backend
-
-/odata/v4/catalog/$metadata
-
-If metadata loads → setup is correct.
-
-
----
-
-11. Key Rules for Client Teams
-
-Instance-level destinations are private
-
-UI apps must bind the same Destination service
-
-CAP must be deployed before UI5
-
-Destination names must match exactly
-
-No backend URLs in UI code
-
-
-
----
-
-Final Summary (One Line)
-
-> The CAP service publishes its endpoint as a private destination inside the Destination service, and UI5 applications bound to that service securely consume it using OAuth-based user authentication.
-
-
-
-
----
-
-If you want next:
-
-Side-by-side comparison (instance vs subaccount)
-
-Troubleshooting appendix
-
-Migration note (instance → subaccount)
-
-
-Say the word.
