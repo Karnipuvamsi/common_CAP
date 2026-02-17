@@ -1,0 +1,253 @@
+Prompt — What You Are Building
+
+Role-based data visibility in SAP BTP using CAP and Fiori.
+
+Two business roles:
+
+User1Role → Can see only persons whose age > 40
+
+User2Role → Can see only persons whose age < 40
+
+
+When the user logs into the Fiori application:
+
+Their name (from JWT token) must be displayed
+
+The Persons table must automatically filter based on role
+
+Filtering must happen securely in backend (CAP), not in UI
+
+
+Authentication handled by SAP XSUAA
+Backend built with SAP CAP
+Frontend built using SAP Fiori
+
+
+---
+
+END-TO-END IMPLEMENTATION
+
+
+---
+
+1️⃣ Create CAP Project
+
+cds init age-role-app
+cd age-role-app
+npm install
+
+
+---
+
+2️⃣ xs-security.json
+
+Create in project root:
+
+{
+  "xsappname": "age-role-app",
+  "tenant-mode": "dedicated",
+  "scopes": [
+    { "name": "$XSAPPNAME.User1", "description": "Age greater than 40" },
+    { "name": "$XSAPPNAME.User2", "description": "Age less than 40" }
+  ],
+  "role-templates": [
+    {
+      "name": "User1Role",
+      "scope-references": ["$XSAPPNAME.User1"]
+    },
+    {
+      "name": "User2Role",
+      "scope-references": ["$XSAPPNAME.User2"]
+    }
+  ]
+}
+
+
+---
+
+3️⃣ Data Model
+
+db/schema.cds
+
+namespace demo;
+
+entity Persons {
+  key ID     : UUID;
+  name       : String;
+  age        : Integer;
+  gender     : String;
+}
+
+
+---
+
+4️⃣ Service Definition
+
+srv/service.cds
+
+using demo from '../db/schema';
+
+service PersonService {
+
+  entity Persons as projection on demo.Persons;
+
+  function getLoggedInUser() returns {
+    id   : String;
+    name : String;
+  };
+
+}
+
+
+---
+
+5️⃣ Service Logic (Role-Based Filtering)
+
+srv/service.js
+
+const cds = require('@sap/cds');
+
+module.exports = (srv) => {
+
+  const { Persons } = srv.entities;
+
+  // ROLE-BASED FILTERING
+  srv.before('READ', Persons, (req) => {
+
+    if (req.user.is('User1Role')) {
+      req.query.where({ age: { '>': 40 } });
+    }
+
+    if (req.user.is('User2Role')) {
+      req.query.where({ age: { '<': 40 } });
+    }
+
+  });
+
+  // RETURN LOGGED-IN USER
+  srv.on('getLoggedInUser', (req) => {
+
+    return {
+      id: req.user.id,
+      name: req.user.attr.givenName + " " + req.user.attr.familyName
+    };
+
+  });
+
+};
+
+
+---
+
+6️⃣ Enable XSUAA in package.json
+
+"cds": {
+  "requires": {
+    "auth": "xsuaa"
+  }
+}
+
+
+---
+
+7️⃣ Deploy to BTP
+
+Create XSUAA service:
+
+cf create-service xsuaa application age-role-xsuaa -c xs-security.json
+
+Create role collections in BTP cockpit:
+
+Assign User1Role to User A
+
+Assign User2Role to User B
+
+
+Deploy:
+
+mbt build
+cf deploy mta_archives/age-role-app_1.0.0.mtar
+
+
+---
+
+8️⃣ Create Fiori App
+
+In SAP Business Application Studio: Create Freestyle UI5 App.
+
+Add destination pointing to CAP service.
+
+
+---
+
+9️⃣ UI Code
+
+View (XML)
+
+<mvc:View
+  controllerName="demo.controller.Main"
+  xmlns="sap.m"
+  xmlns:mvc="sap.ui.core.mvc">
+
+  <VBox>
+    <Text id="userText" text="Loading user..." />
+    
+    <Table items="{/Persons}">
+      <columns>
+        <Column><Text text="Name"/></Column>
+        <Column><Text text="Age"/></Column>
+        <Column><Text text="Gender"/></Column>
+      </columns>
+      <items>
+        <ColumnListItem>
+          <cells>
+            <Text text="{name}" />
+            <Text text="{age}" />
+            <Text text="{gender}" />
+          </cells>
+        </ColumnListItem>
+      </items>
+    </Table>
+
+  </VBox>
+</mvc:View>
+
+
+---
+
+Controller
+
+onInit: function () {
+
+  // Fetch logged-in user
+  fetch("/personservice/getLoggedInUser()")
+    .then(res => res.json())
+    .then(data => {
+      this.byId("userText")
+          .setText("Logged in as: " + data.name);
+    });
+
+}
+
+
+---
+
+Runtime Behaviour
+
+User A (User1Role):
+
+Sees only persons age > 40
+
+Sees their own login name
+
+
+User B (User2Role):
+
+Sees only persons age < 40
+
+Sees their own login name
+
+
+Filtering enforced in CAP backend. UI only displays returned data. Security intact.
+
+End-to-end role-based dynamic data segregation with logged-in user display.
