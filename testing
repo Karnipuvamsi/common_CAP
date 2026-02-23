@@ -1,0 +1,547 @@
+# Complete Final Code — UI5 Arithmetic Library (Production Ready)
+
+---
+
+## 📁 Project Structure
+
+```
+my-math-lib/
+├── src/
+│   └── my/
+│       └── math/
+│           ├── library.js
+│           ├── manifest.json
+│           ├── ArithmeticUtil.js
+│           └── themes/
+│               └── base/
+│                   └── library.css
+├── ui5.yaml
+├── package.json
+└── mta.yaml
+```
+
+---
+
+## `src/my/math/manifest.json`
+
+```json
+{
+  "_version": "1.58.0",
+  "sap.app": {
+    "id": "my.math",
+    "type": "library",
+    "title": "My Arithmetic Library",
+    "applicationVersion": {
+      "version": "1.0.0"
+    }
+  },
+  "sap.ui5": {
+    "library": {
+      "i18n": false,
+      "css": false
+    }
+  }
+}
+```
+
+---
+
+## `src/my/math/library.js`
+
+```javascript
+sap.ui.define([], function () {
+  "use strict";
+
+  sap.ui.getCore().initLibrary({
+    name: "my.math",
+    version: "1.0.0",
+    dependencies: ["sap.ui.core"],
+    types: [],
+    interfaces: [],
+    controls: [],
+    elements: [],
+    noLibraryCSS: true
+  });
+
+  return my.math;  // ✅ correct namespace object
+});
+```
+
+---
+
+## `src/my/math/ArithmeticUtil.js`
+
+```javascript
+sap.ui.define([], function () {
+  "use strict";
+
+  /**
+   * @namespace my.math.ArithmeticUtil
+   * Arithmetic utility — Add, Subtract, Multiply, Divide
+   */
+  const ArithmeticUtil = {
+
+    /**
+     * Add two numbers.
+     * @param {number} a
+     * @param {number} b
+     * @returns {number}
+     */
+    add: function (a, b) {
+      this._validate(a, b);
+      return a + b;
+    },
+
+    /**
+     * Subtract b from a.
+     * @param {number} a
+     * @param {number} b
+     * @returns {number}
+     */
+    subtract: function (a, b) {
+      this._validate(a, b);
+      return a - b;
+    },
+
+    /**
+     * Multiply two numbers.
+     * @param {number} a
+     * @param {number} b
+     * @returns {number}
+     */
+    multiply: function (a, b) {
+      this._validate(a, b);
+      return a * b;
+    },
+
+    /**
+     * Divide a by b.
+     * @param {number} a
+     * @param {number} b
+     * @returns {number}
+     */
+    divide: function (a, b) {
+      this._validate(a, b);
+      if (b === 0) {
+        throw new Error("ArithmeticUtil: Division by zero is not allowed.");
+      }
+      return a / b;
+    },
+
+    /**
+     * @private
+     * Validates both inputs are finite numbers.
+     */
+    _validate: function (a, b) {
+      if (typeof a !== "number" || typeof b !== "number") {
+        throw new Error("ArithmeticUtil: Inputs must be numbers.");
+      }
+      if (!isFinite(a) || !isFinite(b)) {
+        throw new Error("ArithmeticUtil: Inputs must be finite.");
+      }
+    }
+
+  };
+
+  return ArithmeticUtil;
+});
+```
+
+---
+
+## `src/my/math/themes/base/library.css`
+
+```css
+/* No visual controls — intentionally empty */
+```
+
+---
+
+## `ui5.yaml`
+
+```yaml
+specVersion: "3.0"
+type: library
+metadata:
+  name: my.math
+builder:
+  resources:
+    excludes:
+      - "/test/**"
+```
+
+---
+
+## `package.json`
+
+```json
+{
+  "name": "my-math-lib",
+  "version": "1.0.0",
+  "description": "Reusable SAPUI5 Arithmetic Library",
+  "scripts": {
+    "build:cf": "ui5 build --all",
+    "start": "ui5 serve"
+  },
+  "devDependencies": {
+    "@ui5/cli": "^3.0.0"
+  }
+}
+```
+
+---
+
+## `mta.yaml`
+
+```yaml
+_schema-version: "3.2"
+ID: mymathlib
+version: 1.0.0
+description: Reusable UI5 Arithmetic Library
+
+modules:
+  - name: mymathlib
+    type: html5
+    path: .
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      build-result: dist
+
+resources:
+  - name: shared-html5-repo
+    type: org.cloudfoundry.existing-service   # ✅ reuse shared repo
+    parameters:
+      service-name: shared-html5-repo
+
+parameters:
+  deploy_mode: html5-repo
+```
+
+---
+
+## Build & Deploy
+
+```bash
+cd my-math-lib
+mbt build
+cf deploy mta_archives/mymathlib_1.0.0.mtar
+```
+
+---
+---
+
+# Consuming App — Complete Code
+
+---
+
+## 📁 App Structure
+
+```
+my-app/
+├── webapp/
+│   ├── Component.js
+│   ├── manifest.json
+│   ├── controller/
+│   │   └── Main.controller.js
+│   └── view/
+│       └── Main.view.xml
+├── ui5.yaml
+├── package.json
+└── mta.yaml
+```
+
+---
+
+## `webapp/manifest.json`
+
+```json
+{
+  "_version": "1.58.0",
+  "sap.app": {
+    "id": "my.app",
+    "type": "application",
+    "title": "Arithmetic Library Demo App",
+    "applicationVersion": {
+      "version": "1.0.0"
+    }
+  },
+  "sap.ui5": {
+    "rootView": {
+      "viewName": "my.app.view.Main",
+      "type": "XML",
+      "async": true,
+      "id": "appView"
+    },
+    "dependencies": {
+      "minUI5Version": "1.108.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "my.math": {}        
+      }
+    }
+  }
+}
+```
+
+---
+
+## `webapp/Component.js`
+
+```javascript
+sap.ui.define([
+  "sap/ui/core/UIComponent"
+], function (UIComponent) {
+  "use strict";
+
+  return UIComponent.extend("my.app.Component", {
+
+    metadata: {
+      manifest: "json"
+    },
+
+    init: function () {
+      // ✅ No manual loader config needed
+      // HTML5 runtime resolves my.math automatically
+      // via /resources/my/math/ from shared repo
+      UIComponent.prototype.init.apply(this, arguments);
+    }
+
+  });
+});
+```
+
+---
+
+## `webapp/controller/Main.controller.js`
+
+```javascript
+sap.ui.define([
+  "sap/ui/core/mvc/Controller",
+  "my/math/ArithmeticUtil",
+  "sap/m/MessageToast"
+], function (Controller, ArithmeticUtil, MessageToast) {
+  "use strict";
+
+  return Controller.extend("my.app.controller.Main", {
+
+    onInit: function () {
+      // Smoke test on load — visible in browser console
+      console.log("=== ArithmeticUtil Smoke Test ===");
+      console.log("add(5, 3)       =>", ArithmeticUtil.add(5, 3));        // 8
+      console.log("subtract(10, 4) =>", ArithmeticUtil.subtract(10, 4)); // 6
+      console.log("multiply(6, 7)  =>", ArithmeticUtil.multiply(6, 7));  // 42
+      console.log("divide(20, 4)   =>", ArithmeticUtil.divide(20, 4));   // 5
+    },
+
+    onAdd: function () {
+      this._calculate("add");
+    },
+
+    onSubtract: function () {
+      this._calculate("subtract");
+    },
+
+    onMultiply: function () {
+      this._calculate("multiply");
+    },
+
+    onDivide: function () {
+      this._calculate("divide");
+    },
+
+    _calculate: function (operation) {
+      const a = parseFloat(this.byId("inputA").getValue());
+      const b = parseFloat(this.byId("inputB").getValue());
+
+      // Guard: check for empty inputs
+      if (isNaN(a) || isNaN(b)) {
+        MessageToast.show("Please enter valid numbers in both fields.");
+        return;
+      }
+
+      try {
+        const result = ArithmeticUtil[operation](a, b);
+        this.byId("resultText").setText(
+          operation.toUpperCase() + "(" + a + ", " + b + ") = " + result
+        );
+      } catch (e) {
+        MessageToast.show(e.message);
+        this.byId("resultText").setText("Error: " + e.message);
+      }
+    }
+
+  });
+});
+```
+
+---
+
+## `webapp/view/Main.view.xml`
+
+```xml
+<mvc:View
+  controllerName="my.app.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  displayBlock="true">
+
+  <App>
+    <Page title="Arithmetic Library Demo">
+      <content>
+
+        <VBox
+          class="sapUiMediumMargin"
+          renderType="Bare">
+
+          <!-- Inputs -->
+          <Label text="Value A" />
+          <Input
+            id="inputA"
+            placeholder="Enter number A"
+            width="250px"
+            type="Number"/>
+
+          <Label text="Value B" class="sapUiSmallMarginTop"/>
+          <Input
+            id="inputB"
+            placeholder="Enter number B"
+            width="250px"
+            type="Number"/>
+
+          <!-- Operation Buttons -->
+          <HBox class="sapUiSmallMarginTop" wrap="Wrap">
+            <Button
+              text="Add"
+              type="Emphasized"
+              press=".onAdd"/>
+            <Button
+              text="Subtract"
+              type="Default"
+              press=".onSubtract"
+              class="sapUiSmallMarginBegin"/>
+            <Button
+              text="Multiply"
+              type="Default"
+              press=".onMultiply"
+              class="sapUiSmallMarginBegin"/>
+            <Button
+              text="Divide"
+              type="Default"
+              press=".onDivide"
+              class="sapUiSmallMarginBegin"/>
+          </HBox>
+
+          <!-- Result -->
+          <Text
+            id="resultText"
+            text="Result: —"
+            class="sapUiMediumMarginTop"
+            renderWhitespace="true"/>
+
+        </VBox>
+
+      </content>
+    </Page>
+  </App>
+
+</mvc:View>
+```
+
+---
+
+## App `ui5.yaml`
+
+```yaml
+specVersion: "3.0"
+type: application
+metadata:
+  name: my.app
+```
+
+---
+
+## App `package.json`
+
+```json
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "description": "UI5 App consuming my.math arithmetic library",
+  "scripts": {
+    "start": "ui5 serve",
+    "build:cf": "ui5 build"
+  },
+  "devDependencies": {
+    "@ui5/cli": "^3.0.0"
+  }
+}
+```
+
+---
+
+## App `mta.yaml`
+
+```yaml
+_schema-version: "3.2"
+ID: myapp
+version: 1.0.0
+description: UI5 App consuming shared arithmetic library
+
+modules:
+  - name: myapp
+    type: html5
+    path: .
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      build-result: dist
+
+resources:
+  - name: shared-html5-repo
+    type: org.cloudfoundry.existing-service   # ✅ same repo as library
+    parameters:
+      service-name: shared-html5-repo
+
+parameters:
+  deploy_mode: html5-repo
+```
+
+---
+
+## App Build & Deploy
+
+```bash
+cd my-app
+mbt build
+cf deploy mta_archives/myapp_1.0.0.mtar
+```
+
+---
+
+## Runtime Behaviour
+
+```
+add(10, 5)       →  15
+subtract(10, 5)  →   5
+multiply(10, 5)  →  50
+divide(10, 5)    →   2
+divide(10, 0)    →  ❌ "Division by zero is not allowed"
+add("x", 5)      →  ❌ "Inputs must be numbers"
+add(Infinity, 5) →  ❌ "Inputs must be finite"
+```
+
+---
+
+## Deployment Order (Important)
+
+```
+Step 1 → Deploy Library first   (mymathlib_1.0.0.mtar)
+Step 2 → Deploy App second      (myapp_1.0.0.mtar)
+Step 3 → Both live in same HTML5 repo → runtime resolves my.math ✅
+```
