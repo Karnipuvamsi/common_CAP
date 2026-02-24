@@ -1,0 +1,87 @@
+_schema-version: 3.3.0
+ID: Democap
+version: 1.0.0
+description: "A simple CAPPP projectts."
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: Democap-srv-${space}
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: Democap-auth-${space}
+      - name: Democap-db-${space}
+
+  - name: Democap-db-deployer-${space}
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: Democap-db-${space}
+
+  - name: Democap-destination-content-${space}
+    type: com.sap.application.content
+    path: .
+    build-parameters:
+      no-source: true
+    requires:
+      - name: Democap-destination-${space}
+        parameters:
+          content-target: true
+      - name: srv-api
+      - name: Democap-auth-${space}
+    parameters:
+      content:
+        subaccount:
+          destinations:
+            - Name: Democap-srv-${space}
+              URL: ~{srv-api/srv-url}
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: Democap-auth-${space}
+              HTML5.DynamicDestination: true
+              WebIDEEnabled: true
+              WebIDEUsage: odata_gen
+          existing_destinations_policy: update
+
+resources:
+  - name: Democap-auth-${space}
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: Democap-auth-${space}
+        tenant-mode: dedicated
+        oauth2-configuration:
+          credential-types:
+            - "binding-secret"
+            - "x509"
+
+  - name: Democap-db-${space}
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+
+  - name: Democap-destination-${space}
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
